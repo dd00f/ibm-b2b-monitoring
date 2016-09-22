@@ -1,0 +1,78 @@
+<jmxtrans-agent>
+    <queries>
+        <!-- OS -->
+        <query objectName="java.lang:type=OperatingSystem" attribute="SystemLoadAverage" resultAlias="os.systemLoadAverage"/>
+
+        <!-- JVM -->
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="used"
+               resultAlias="jvm.heapMemoryUsage.used"/>
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="committed"
+               resultAlias="jvm.heapMemoryUsage.committed"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="used"
+               resultAlias="jvm.nonHeapMemoryUsage.used"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="committed"
+               resultAlias="jvm.nonHeapMemoryUsage.committed"/>
+        <query objectName="java.lang:type=ClassLoading" attribute="LoadedClassCount" resultAlias="jvm.loadedClasses"/>
+        <query objectName="java.lang:type=Threading" attribute="ThreadCount" resultAlias="jvm.thread"/>
+        <query objectName="java.lang:type=GarbageCollector,name=*" attribute="CollectionCount"/>
+        <query objectName="java.lang:type=GarbageCollector,name=*" attribute="CollectionTime"/>
+
+
+		
+		<query objectName="com.ibm.profiler:ID=*B2BMessageExtractionsService.beginMessageExtraction*,interval=*,MetricType=TotalLogEntry" attribute="CallCount" resultAlias="com_ibm_profiler.B2BMessageExtractionsService_beginMessageExtraction.MetricType__TotalLogEntry.interval__total.CallCount"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageExtractionsService.beginMessageExtraction*,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount" resultAlias="com_ibm_profiler.B2BMessageExtractionsService_beginMessageExtraction.MetricType__TotalLogEntry.interval__total.ErrorCallCount"/>
+        
+        <query objectName="com.ibm.profiler:ID=*B2BMessageExtractionsService.beginMessageExtraction*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration" resultAlias="com_ibm_profiler.B2BMessageExtractionsService_beginMessageExtraction.MetricType__TimeIntervalLogEntry.interval__1m.AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageExtractionsService.beginMessageExtraction*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration" resultAlias="com_ibm_profiler.B2BMessageExtractionsService_beginMessageExtraction.MetricType__TimeIntervalLogEntry.interval__1m.MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageExtractionsService.beginMessageExtraction*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration" resultAlias="com_ibm_profiler.B2BMessageExtractionsService_beginMessageExtraction.MetricType__TimeIntervalLogEntry.interval__1m.MaximumDuration"/>
+
+<query objectName="com.ibm.profiler:ID=*B2BMessageService.createMessage*,interval=*,MetricType=TotalLogEntry" attribute="CallCount" resultAlias="com_ibm_profiler.B2BMessageService_createMessage.MetricType__TotalLogEntry.interval__total.CallCount"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.createMessage*,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount" resultAlias="com_ibm_profiler.B2BMessageService_createMessage.MetricType__TotalLogEntry.interval__total.ErrorCallCount"/>
+        
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.createMessage*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration" resultAlias="com_ibm_profiler.B2BMessageService_createMessage.MetricType__TimeIntervalLogEntry.interval__1m.AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.createMessage*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration" resultAlias="com_ibm_profiler.B2BMessageService_createMessage.MetricType__TimeIntervalLogEntry.interval__1m.MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.createMessage*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration" resultAlias="com_ibm_profiler.B2BMessageService_createMessage.MetricType__TimeIntervalLogEntry.interval__1m.MaximumDuration"/>
+
+		
+		<query objectName="com.ibm.profiler:ID=*B2BMessageService.markMessageComplete*,interval=*,MetricType=TotalLogEntry" attribute="CallCount" resultAlias="com_ibm_profiler.B2BMessageService_markMessageComplete.MetricType__TotalLogEntry.interval__total.CallCount"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.markMessageComplete*,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount" resultAlias="com_ibm_profiler.B2BMessageService_markMessageComplete.MetricType__TotalLogEntry.interval__total.ErrorCallCount"/>
+        
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.markMessageComplete*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration" resultAlias="com_ibm_profiler.B2BMessageService_markMessageComplete.MetricType__TimeIntervalLogEntry.interval__1m.AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.markMessageComplete*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration" resultAlias="com_ibm_profiler.B2BMessageService_markMessageComplete.MetricType__TimeIntervalLogEntry.interval__1m.MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=*B2BMessageService.markMessageComplete*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration" resultAlias="com_ibm_profiler.B2BMessageService_markMessageComplete.MetricType__TimeIntervalLogEntry.interval__1m.MaximumDuration"/>		
+		
+				
+        <query objectName="com.ibm.profiler:ID=&quot;Zookeeper*&quot;,interval=*,MetricType=TotalLogEntry" attribute="CallCount"/>
+        <query objectName="com.ibm.profiler:ID=&quot;Zookeeper*&quot;,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount"/>
+        
+        <query objectName="com.ibm.profiler:ID=&quot;Zookeeper*&quot;,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=&quot;Zookeeper*&quot;,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=&quot;Zookeeper*&quot;,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration"/>
+
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TotalLogEntry" attribute="CallCount"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount"/>
+        
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageResponseSize"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumResponseSize"/>
+        <query objectName="com.ibm.profiler:ID=Cassandra_All_Operations*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumResponseSize"/>
+		
+		
+    </queries>
+    <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
+        <host>GRAFANA_SERVER_NAME</host>
+        <port>GRAFANA_SERVER_PORT</port>
+        <namePrefix>server.????.app.b2bi-noapp.</namePrefix>
+    </outputWriter>
+    <!-- 
+    <outputWriter class="org.jmxtrans.agent.FileOverwriterOutputWriter">
+        <fileName>../log/jmxtransagent.output.txt</fileName>
+        <maxFileSize>50</maxFileSize>
+        <maxBackupIndex>5</maxBackupIndex>
+    </outputWriter>
+    <outputWriter class="org.jmxtrans.agent.ConsoleOutputWriter"/>
+     -->
+    <collectIntervalInSeconds>4</collectIntervalInSeconds>
+</jmxtrans-agent>

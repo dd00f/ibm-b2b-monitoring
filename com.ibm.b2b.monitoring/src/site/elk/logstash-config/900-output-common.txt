@@ -1,0 +1,27 @@
+
+output {
+  stdout { codec => json_lines }
+  file {
+    path => "D:\IBM\tools\logstash-2.3.2\out.txt"
+   codec => json_lines
+  }
+
+	# temporary workaround, when splitting logs, metadata isn't copied in the latest version of logstash.
+	# which causes the index name to stop working for performance metrics
+	if "Metric" in [tags] {
+		elasticsearch {
+			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			index => "profiler-%{+YYYY.MM.dd}"
+			# document_type => "%{[@metadata][type]}"
+		}
+	}
+	else {
+		elasticsearch {
+			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+			document_type => "%{[@metadata][type]}"
+		}
+	}
+	
+
+}

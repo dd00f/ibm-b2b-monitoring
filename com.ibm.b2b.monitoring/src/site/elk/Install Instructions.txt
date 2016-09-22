@@ -1,0 +1,46 @@
+Based on : https://github.com/deviantony/docker-elk
+
+Steps
+	- Install Docker.
+	- Install Docker-compose.
+	- Clone this repository : https://github.com/deviantony/docker-elk
+	- overwrite the file : docker-compose.yml
+	- mkdir : /var/elasticsearch
+	- copy the logstash-config (from RTC sub folder) folder to /opt/docker/elk/logstash/config
+
+	- run : 
+		docker-compose up -d
+		
+		5000: Logstash TCP input.
+		9200: Elasticsearch HTTP
+		9300: Elasticsearch TCP transport
+		5601: Kibana
+	
+	- Install the Beats sample dashboards in Kibana :  
+		https://www.elastic.co/guide/en/beats/libbeat/current/load-kibana-dashboards.html
+		
+		Run : 
+			curl -L -O http://download.elastic.co/beats/dashboards/beats-dashboards-1.2.3.zip
+			unzip beats-dashboards-1.2.3.zip
+			cd beats-dashboards-1.2.3/
+			./load.sh -url http://192.168.33.60:9200
+
+	- Overwrite the topbeat kibana template (the one in the sample has bugs)
+		https://www.elastic.co/guide/en/beats/topbeat/current/topbeat-template.html
+		From the folder : elk/elastic-search-template
+		
+		Run :
+			curl -XPUT 'http://localhost:9200/_template/topbeat' -d@./topbeat.template.json
+	
+	- Install the profiler template :
+		From the folder : elk/elastic-search-template
+	
+		Run : 
+			curl -XPUT 'http://localhost:9200/_template/profiler' -d@./profiler.template.json
+	
+	- Install the filebeat template :
+		From the folder : elk/elastic-search-template
+	
+		Run : 
+			curl -XPUT 'http://localhost:9200/_template/filebeat' -d@./filebeat.template.json
+		

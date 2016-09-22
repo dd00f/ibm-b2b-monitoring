@@ -1,0 +1,35 @@
+
+filter {
+
+	if [@metadata][beat] == "filebeat" {
+		if "Metric" in [tags] {
+	
+		}
+		else {
+			throttle {
+				# throttle logs per day per host - warning for the last 100 logs
+				after_count => 999900
+				period => 86400
+				key => "%{host}"
+				add_tag => "pre-throttled-warning"
+			}
+		
+			throttle {
+				# throttle logs per day per host 
+				after_count => 1000000
+				period => 86400
+				key => "%{host}"
+				add_tag => "throttled"
+			}
+		}
+		
+		# lower the logging level when a host generate too many logs
+		if "throttled" in [tags] and [logLevel] in ["CONSOLE","INFO","AUDIT"]{
+		    metrics {
+				meter => "throttle-drop-events-%{shortHost}"
+				flush_interval => 60
+			}
+			drop { }
+		}
+	}
+}

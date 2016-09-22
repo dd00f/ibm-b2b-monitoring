@@ -1,0 +1,221 @@
+
+filter {
+
+	if [type] == "filesystem" {
+	    metrics {
+			meter => "filesystem events"
+			add_tag => "logstash-metric"
+			flush_interval => 60
+		}	
+	}
+
+	if [type] == "process" {
+	    metrics {
+			meter => "process events"
+			add_tag => "logstash-metric"
+			flush_interval => 60
+		}	
+					
+		if [proc][name] == "java" {
+			if [proc][cmdline] =~ "ws-server\.jar" {
+				mutate {
+					replace => { "[proc][name]" => "java-liberty" }
+				}
+			}
+			else if [proc][cmdline] =~ "org\.apache\.catalina\.startup\.Bootstrap" {
+				mutate {
+					replace => { "[proc][name]" => "java-tomcat" }
+				}
+			}
+			else if [proc][cmdline] =~ "air-monitor\.jar" {
+				mutate {
+					replace => { "[proc][name]" => "java-ucd-airmonitor" }
+				}
+			}
+			else if [proc][cmdline] =~ "com\.urbancode\.air\.agent\.AgentWorker" {
+				mutate {
+					replace => { "[proc][name]" => "java-ucd-agent" }
+				}
+			}
+			else if [proc][cmdline] =~ "logstash\/runner\.rb" {
+				mutate {
+					replace => { "[proc][name]" => "java-logstash" }
+				}
+			}
+			else if [proc][cmdline] =~ "org\.elasticsearch\.bootstrap\.Elasticsearch" {
+				mutate {
+					replace => { "[proc][name]" => "java-elasticsearch" }
+				}
+			}				
+			else if [proc][cmdline] =~ "com\.ibm\.wmqfte\.agent\.Agent" {
+				mutate {
+					replace => { "[proc][name]" => "java-wmqfte-agent" }
+				}
+			}			
+			else if [proc][cmdline] =~ "com\.ibm\.monitoring\.mq\.Xmqqstat" {
+				mutate {
+					replace => { "[proc][name]" => "java-mq-monitor" }
+				}
+			}
+			else if [proc][cmdline] =~ "PEST.bin.felix\.jar" {
+				mutate {
+					replace => { "[proc][name]" => "java-pest" }
+				}
+			}
+		}
+		else if [proc][name] == "node" {
+			if [proc][cmdline] =~ "kibana" {
+				mutate {
+					replace => { "[proc][name]" => "node-kibana" }
+				}
+			}
+		}
+	}
+
+	if  "liberty" in [tags] {
+
+		mutate
+		{
+			gsub => ["message", "\r", ""]
+		}
+
+		grok {
+			match => { "message" => "\[(?<dateTime>[0-9]{1,}/[0-9]{1,}/[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,})\] (?<threadId>[a-zA-Z0-9]{1,}) (?<className>[^ ]{1,}) {1,}(?<logLevel>[a-zA-Z0-9]{1}) (?<message>(.|\r|\n)*)" }
+
+			overwrite => [ "message" ]
+		}
+		
+		if "_grokparsefailure" in [tags] and [message] =~ "\*{20,}" {
+			mutate {
+				remove_tag => [ "_grokparsefailure"]
+			}
+			mutate {
+				add_field => { "logLevel" => "INFO" }
+			}
+		}
+		else {
+			date {
+				match => [ "dateTime", "MM/dd/YY HH:mm:ss:SSS zzz" ]
+				remove_field => ["dateTime"]
+			}
+		}
+
+		if [logLevel] =~ "[0-9]" {
+		    metrics {
+				meter => "liberty debug drop events %{shortHost}"
+				add_tag => "logstash-drop-metric"
+				flush_interval => 60
+			}			
+			drop { }
+		}
+		else if [logLevel] == "E" {
+			mutate
+			{
+				replace => { "logLevel" => "ERROR" }
+			}
+		}
+		else if [logLevel] == "O" {
+			mutate
+			{
+				replace => { "logLevel" => "CONSOLE" }
+			}
+		}
+		else if [logLevel] == "R" {
+			mutate
+			{
+				replace => { "logLevel" => "ERROR-CONSOLE" }
+			}
+		}		
+		else if [logLevel] == "W" {
+			mutate
+			{
+				replace => { "logLevel" => "WARN" }
+			}
+		}
+		else if [logLevel] == "I" {
+			mutate
+			{
+				replace => { "logLevel" => "INFO" }
+			}
+		}
+		else if [logLevel] == "A" {
+			mutate
+			{
+				replace => { "logLevel" => "AUDIT" }
+			}
+		}
+		if [message] =~ "Name\,Number of calls\,Average" {
+			mutate{
+				add_tag => [ "Metric" ]
+			}
+		}  
+	}
+	
+	if "Metric" in [tags] {
+	
+	    metrics {
+			meter => "profiler events"
+			add_tag => "logstash-metric"
+			flush_interval => 60
+		}	
+	
+		# "dir/performance-metrics-2016-08-11T18-11-25Z.csv"
+		grok {
+			match => {"source"  => ".*metrics-(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,}T[0-9]{1,}-[0-9]{1,}-[0-9]{1,})Z\.csv" }
+		}
+		
+		if "_grokparsefailure" not in [tags] {
+			date {
+				match => [ "dateTime", "YYYY-MM-dd'T'HH-mm-ss" ]
+				remove_field => ["dateTime"]
+				timezone => "UTC"
+			}
+		}
+
+		split { 
+			field => "message"
+		}
+
+		# ignore title lines
+		if [message] =~ "Name\,Number of calls\,Average" {
+			drop { }
+		}
+		
+		grok {
+			match => {"message"  => "(?<operation>[^,]{1,}),%{NUMBER:callCount:int},%{NUMBER:averageDurationMs:float},%{NUMBER:minimumDurationMs:float},%{NUMBER:maximumDurationMs:float},%{NUMBER:totalDurationMs:float},%{NUMBER:averageSize:float},%{NUMBER:maximumSize:float},%{NUMBER:totalSize:float},%{NUMBER:cacheEnabledCount:int},%{NUMBER:cacheHitCount:int},%{NUMBER:errorCount:int},%{NUMBER:callCountRecent:int},%{NUMBER:averageDurationMsRecent:float},%{NUMBER:minimumDurationMsRecent:float},%{NUMBER:maximumDurationMsRecent:float},%{NUMBER:totalDurationMsRecent:float},%{NUMBER:averageSizeRecent:float},%{NUMBER:maximumSizeRecent:float},%{NUMBER:totalSizeRecent:float},%{NUMBER:cacheEnabledCountRecent:int},%{NUMBER:cacheHitCountRecent:int},%{NUMBER:errorCountRecent:int}" }
+			remove_field => ["message","logLevel","loggerName","threadName","threadId","count","fields","offset"]
+		}
+		
+		# skip metrics that haven't changed since the last time we gathered them
+		if [callCountRecent] == "0" {
+		    metrics {
+				meter => "profiler-drop-zero-call-events"
+			}			
+			drop { }
+		}
+		
+	}
+	else {
+		if [@metadata][beat] == "filebeat" {
+			if ! [logLevel] {
+				mutate {
+					add_field => { "logLevel" => "UNKNOWN" }
+				}
+			}
+			else {
+				mutate{
+					uppercase => [ "logLevel" ]
+				}
+			}
+		}
+		
+		
+		ruby {
+		    init => "require 'time'"
+		    code => "event['[metrics][server_lag]'] = Time.now() - event['@timestamp']; event['[metrics][server_time]'] = Time.now()"
+		}
+		
+	}
+	
+
+}

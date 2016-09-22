@@ -1,0 +1,28 @@
+
+filebeat:
+  # global mailbox Prospectors
+  prospectors:
+    -
+      paths:
+        - GM_DIR/usr/servers/mailboxui/logs/messages.log
+      input_type: log
+      document_type: gm_web
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^\[[0-9]{1,}/[0-9]{1,}/[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,}\] 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - GM_DIR/usr/servers/mailboxui/logs/performance-metrics-*.csv
+      encoding: utf-8
+      input_type: log
+      document_type: gm_web_metrics
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000
+      #tail_files: false

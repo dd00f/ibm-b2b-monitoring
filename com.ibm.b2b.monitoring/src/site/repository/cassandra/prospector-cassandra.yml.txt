@@ -1,0 +1,23 @@
+
+filebeat:
+  # Control Center Prospectors
+  prospectors:
+    -
+      paths:
+        - CASSANDRA_DIR/logs/system.log
+      #encoding: plain
+      input_type: log
+      # exclude_lines: ["^DBG"]
+      # include_lines: ["^ERR", "^WARN"]
+      #fields:
+      #  type: control_center_web
+      document_type: cassandra
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^\[[a-zA-Z0-9]{1,}\] \[[^\]]{1,}\] [0-9]{1,}-[0-9]{1,}-[0-9]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+      #tail_files: false

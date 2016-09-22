@@ -1,0 +1,131 @@
+
+filter {
+
+	if [type] == "process" and [proc][name] == "java" {
+		if [proc][cmdline] =~ "com\.ibm\.cgsBus\.CGSServer" {
+			mutate {
+				replace => { "[proc][name]" => "java-cognos-cgsserver" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.cognos\.xqebifw\.cubingservices\.DQServer" {
+			mutate {
+				replace => { "[proc][name]" => "java-cognos-dqserver" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.sterlingcommerce\.scc\.agent\.SCCAgent" {
+			mutate {
+				replace => { "[proc][name]" => "ccengine" }
+			}
+		}
+		else if [proc][cmdline] =~ "org\.apache\.catalina\.startup\.Bootstrap" {
+			if [proc][cmdline] =~ "Cognos\/\.\/bin64" {
+				mutate {
+					replace => { "[proc][name]" => "java-cognos-tomcat" }
+				}
+			}
+		}
+		else if [proc][cmdline] =~ "ws-server\.jar" {
+			if [proc][cmdline] =~ "[cC]ontrol[cC]enter" {
+				mutate {
+					replace => { "[proc][name]" => "ccweb" }
+				}
+			}
+		}		
+	}
+
+
+	if [type] == "control_center_engine_detailed" {
+
+		grok {
+			# control center pattern
+			match => { "message" => "(?<dateTime>[0-9]{1,} [a-zA-Z]{1,} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,}) (?<threadId>[^ ]{1,}) \[(?<threadName>[^\]]{1,})\] (?<logLevel>[a-zA-Z0-9]{1,}) {1,}(?<loggerName>[^ ]{1,}) - (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		mutate {
+			add_field => { "application" => "ccengine" }
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}		
+		date {
+			# Control Center date time
+			match => [ "dateTime", "dd MMM YYYY HH:mm:ss,SSS ZZZ" ]
+
+			# Dummy monitoring date time
+			remove_field => ["dateTime"]
+		} 
+	}
+  
+	if [type] == "control_center_engine_simple" {
+	
+		mutate {
+			add_field => { "logLevel" => "INFO" }
+		}
+		mutate {
+			add_field => { "application" => "ccengine" }
+		}
+		grok {
+			match => { "message" => "(?<dateTime>[0-9]{1,} [a-zA-Z]{1,} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,}) \[(?<threadName>[^\]]{1,})\] - (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "dd MMM YYYY HH:mm:ss,SSS ZZZ" ]
+			remove_field => ["dateTime"]
+		} 
+	}
+  
+	if [type] == "control_center_engine_java" {
+
+		mutate{
+			gsub => ["message", "\r", ""]
+		}
+		mutate {
+			add_field => { "application" => "ccengine" }
+		}
+		grok {
+			match => { "message" => "(?<dateTime>[a-zA-Z]{1,} [0-9]{1,}, [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,}) (?<className>[^ \n\r]{1,}) ?(?<methodName>[^ \n\r]*)[ \n]{1,}(?<logLevel>[a-zA-Z0-9]{1,}): (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		
+		date {
+			match => [ "dateTime", "MMM dd, YYYY hh:mm:ss aa" ]
+			timezone => "UTC"
+			remove_field => ["dateTime"]
+		}
+	}
+
+	if [type] == "control_center_web" {
+		mutate{
+			add_tag => [ "liberty" ]
+		}
+		
+		mutate {
+			add_field => { "application" => "ccweb" }
+		}		
+ 	}
+ 	
+	if [type] == "control_center_engine_metrics" {
+
+		mutate{
+			add_tag => [ "Metric" ]
+		}
+		
+		mutate {
+			add_field => { "application" => "ccengine" }
+		}
+	}
+	 	
+	if [type] == "control_center_web_metrics" {
+
+		mutate{
+			add_tag => [ "Metric" ]
+		}
+		
+		mutate {
+			add_field => { "application" => "ccweb" }
+		}		
+	}	
+}

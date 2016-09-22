@@ -1,0 +1,48 @@
+
+filter {
+
+	if [type] == "process" and [proc][name] == "java" {
+		if [proc][cmdline] =~ "org\.apache\.zookeeper\.server\.quorum\.QuorumPeerMain" {
+			mutate {
+				replace => { "[proc][name]" => "Zookeeper" }
+			}
+		}		
+	}
+
+	if [type] == "zookeeper" {
+
+		grok {
+			match => { "message" => "(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,}) \[(?<threadName>[^\]]{1,})\] - (?<logLevel>[a-zA-Z0-9]{1,}) {1,}\[(?<loggerName>.*)\] - (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		# Those user errors are expected based on how Global Mailbox uses zookeeper
+		if [logLevel] == "INFO" {
+			if [message] =~ "KeeperErrorCode = NoNode for" or
+			   [message] =~ "Accepted socket connection from" or
+			   [message] =~ "Closed socket connection for client" or
+			   [message] =~ "Processing mntr command from" {
+			    metrics {
+					meter => "zookeeper drop events %{shortHost}"
+					add_tag => "logstash-drop-metric"
+					flush_interval => 60
+				}				   
+				drop { }
+			}
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "YYYY-MM-dd HH:mm:ss,SSS ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "Zookeeper" }
+		}
+			
+		
+	}
+
+}

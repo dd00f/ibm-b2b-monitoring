@@ -1,0 +1,48 @@
+
+filter {
+
+	if [type] == "process" and [proc][name] == "java" {
+		if [proc][cmdline] =~ "org\.apache\.cassandra\.service\.CassandraDaemon" {
+			mutate {
+				replace => { "[proc][name]" => "Cassandra" }
+			}
+		}		
+	}
+
+
+	if [type] == "cassandra" {
+
+		grok {
+			match => { "message" => "\[(?<logLevel>[a-zA-Z0-9]{1,})\] \[(?<threadName>[^\]]{1,})\] (?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,}) (?<loggerName>[^:]{1,}):(?<lineNumber>[0-9]{1,}) - (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+
+		date {
+			match => [ "dateTime", "YYYY-MM-dd HH:mm:ss,SSS ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "Cassandra" }
+		}			
+		
+		# repair jobs in Cassandra can generate a large amount of logs.
+		if [logLevel] == "INFO" {
+			if [message] =~ "\[repair " or 
+			   [message] =~ "Repair.*finished" {
+			    metrics {
+					meter => "cassandra drop events %{shortHost}"
+					add_tag => "logstash-drop-metric"
+					flush_interval => 60
+				}				   
+				drop { }
+			}
+		}		
+		
+	}
+
+}

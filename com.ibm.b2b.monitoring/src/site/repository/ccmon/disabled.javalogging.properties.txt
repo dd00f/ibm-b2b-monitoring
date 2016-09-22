@@ -1,0 +1,16 @@
+### Used to redirect log messages that are generated with java logging framework
+
+handlers = com.ibm.commerce.cache.BatchedAsynchronousFileHandler
+.level= WARNING
+
+# turn this level on to FINE or below to enable performance logging.
+com.ibm.service.level=WARNING
+
+com.ibm.commerce.cache.BatchedAsynchronousFileHandler.level     = FINEST
+com.ibm.commerce.cache.BatchedAsynchronousFileHandler.formatter =java.util.logging.SimpleFormatter
+com.ibm.commerce.cache.BatchedAsynchronousFileHandler.limit     = 50000000
+com.ibm.commerce.cache.BatchedAsynchronousFileHandler.count     = 2
+com.ibm.commerce.cache.BatchedAsynchronousFileHandler.pattern   = ../log/javalog.%u.%g.txt
+
+
+

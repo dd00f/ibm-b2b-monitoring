@@ -1,0 +1,70 @@
+
+filebeat:
+  # B2Bi Prospectors
+  prospectors:
+    -
+      paths:
+        - B2BI_DIR/logs/*.log
+        - B2BI_DIR/logs/node*/*.log
+      exclude_files: [".*MEGLoging.*", ".*logs_[0-9]{1,}_[0-9]{1,}.*"]
+      input_type: log
+      document_type: b2bi_raw
+      clean_removed: true
+      close_removed: true
+      scan_frequency: 5s
+      max_bytes: 2000000
+    -
+      paths:
+        - B2BI_DIR/logs/*.log.D*.T*
+        - B2BI_DIR/logs/node*/*.log.D*.T*
+        - B2BI_DIR/logs/PURGE/*.log.D*.T*
+      exclude_files: [".*InstallService.*", ".*logs_[0-9]{1,}_[0-9]{1,}.*" ]
+      input_type: log
+      document_type: b2bi_core
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000
+      multiline:
+        pattern: ^\[[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,}\] [a-zA-Z0-9]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+      #tail_files: false
+    -
+      paths:
+        - B2BI_DIR/logs/MEGLoging_*.log
+      input_type: log
+      document_type: b2bi_java
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[a-zA-Z]{1,} [0-9]{1,}, [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+      #tail_files: false
+    -
+      paths:
+        - B2BI_DIR/logs/performance-metrics-*.csv
+      encoding: utf-8
+      input_type: log
+      document_type: b2bi_core_metrics
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000
+      #tail_files: false
+    -
+      paths:
+        - B2BI_DIR/logs/node-performance-metrics-*.csv
+      encoding: utf-8
+      input_type: log
+      document_type: b2bi_node_metrics
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000
+      #tail_files: false

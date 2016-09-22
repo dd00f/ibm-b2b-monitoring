@@ -1,0 +1,99 @@
+filter {
+
+	if [type] == "process" and [proc][name] == "java" {
+		if [proc][cmdline] =~ "startlisteners\.properties" {
+			mutate {
+				replace => { "[proc][name]" => "b2bi-listener" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.sterlingcommerce\.woodstock\.noapp\.NoAppServer" {
+			mutate {
+				replace => { "[proc][name]" => "b2bi-noapp" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.sterlingcommerce\.woodstock\.osgi\.ContainerMain" {
+			mutate {
+				replace => { "[proc][name]" => "b2bi-container" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.sterlingcommerce\.woodstock\.ops\.server\.OpsServer" {
+			mutate {
+				replace => { "[proc][name]" => "b2bi-ops" }
+			}
+		}
+		else if [proc][cmdline] =~ "com\.sterlingcommerce\.jms\.activemq\.SCIBrokerFactory" {
+			mutate {
+				replace => { "[proc][name]" => "activemq" }
+			}
+		}		
+	}
+
+	if [type] == "b2bi_raw" {
+		mutate {
+			add_field => { "logLevel" => "INFO" }
+		}
+		mutate {
+			add_field => { "application" => "b2bi-container" }
+		}		
+	}
+	
+	if [type] == "b2bi_core" {
+
+		grok {
+			match => { "message" => "\[(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,})\] (?<logLevel>[a-zA-Z0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}		
+
+		date {
+			match => [ "dateTime", "YYYY-MM-dd HH:mm:ss.SSS ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		mutate {
+			add_field => { "application" => "b2bi-container" }
+		}		
+	}
+	
+	if [type] == "b2bi_java" {
+
+		mutate{
+			gsub => ["message", "\r", ""]
+		}
+
+		grok {
+			match => { "message" => "(?<dateTime>[a-zA-Z]{1,} [0-9]{1,}, [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,}) (?<className>[^ \n\r]{1,}) ?(?<methodName>[^ \n\r]*)[ \n]{1,}(?<logLevel>[a-zA-Z0-9]{1,}): (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		
+		date {
+			match => [ "dateTime", "MMM dd, YYYY hh:mm:ss aa" ]
+			timezone => "UTC"
+			remove_field => ["dateTime"]
+		}
+		mutate {
+			add_field => { "application" => "b2bi-container" }
+		}		
+
+	}
+	
+	if [type] == "b2bi_core_metrics" {
+		mutate{
+			add_tag => [ "Metric" ]
+		}
+		mutate {
+			add_field => { "application" => "b2bi-noapp" }
+		}		
+	}	
+
+	if [type] == "b2bi_node_metrics" {
+		mutate{
+			add_tag => [ "Metric" ]
+		}
+		mutate {
+			add_field => { "application" => "b2bi-container" }
+		}		
+	}	
+}

@@ -1,0 +1,92 @@
+
+filebeat:
+  # Control Center Prospectors
+  prospectors:
+    -
+      paths:
+        - CC_DIR/log/Engine_*.log
+        - CC_DIR/log/RuleSession_*.log
+        - CC_DIR/log/PurgeStagingService_*.log
+        - CC_DIR/log/BulkDataMover_*.log
+        - CC_DIR/log/EngineStartup_*.log
+        - CC_DIR/jetty/log/Jetty_*.log
+        - CC_DIR/log/SQLQueryLog_*.log
+        - CC_DIR/log/WebclientServletAppender_*.log
+        - CC_DIR/log/StatisticsService_*.log
+        - CC_DIR/log/EventProcessorService_*.log
+      input_type: log
+      document_type: control_center_engine_detailed
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[0-9]{1,} [a-zA-Z]{1,} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - CC_DIR/log/B2BiMetrics_*.log
+        - CC_DIR/log/NodeConfigService_*.log
+        - CC_DIR/log/DiscoveryService_*.log
+        - CC_DIR/log/FileAgentService_*.log
+        - CC_DIR/log/CognosReportService_*.log
+        - CC_DIR/log/SeasService_*.log
+        - CC_DIR/log/Configuration_*.log
+        - CC_DIR/log/SLCService_*.log
+      input_type: log
+      document_type: control_center_engine_simple
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[0-9]{1,} [a-zA-Z]{1,} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - CC_DIR/log/javalog*.txt
+      input_type: log
+      document_type: control_center_engine_java
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[0-9]{1,} [a-zA-Z]{1,} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - CC_DIR/web/wlp/usr/servers/defaultServer/logs/messages.log
+      input_type: log
+      document_type: control_center_web
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^\[[0-9]{1,}/[0-9]{1,}/[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,}\] 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - CC_DIR/log/performance-metrics-*.csv
+      encoding: utf-8
+      input_type: log
+      document_type: control_center_engine_metrics
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000
+    -
+      paths:
+        - CC_DIR/web/wlp/usr/servers/defaultServer/logs/performance-metrics-*.csv
+      encoding: utf-8
+      input_type: log
+      document_type: control_center_web_metrics
+      scan_frequency: 5s
+      clean_removed: true
+      close_removed: true
+      max_bytes: 2000000

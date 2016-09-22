@@ -1,0 +1,220 @@
+<jmxtrans-agent>
+    <queries>
+        <!-- OS -->
+        <query objectName="java.lang:type=OperatingSystem" attribute="SystemLoadAverage" resultAlias="os.systemLoadAverage"/>
+
+        <!-- JVM -->
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="used"
+               resultAlias="jvm.heapMemoryUsage.used"/>
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="committed"
+               resultAlias="jvm.heapMemoryUsage.committed"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="used"
+               resultAlias="jvm.nonHeapMemoryUsage.used"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="committed"
+               resultAlias="jvm.nonHeapMemoryUsage.committed"/>
+        <query objectName="java.lang:type=ClassLoading" attribute="LoadedClassCount" resultAlias="jvm.loadedClasses"/>
+        <query objectName="java.lang:type=Threading" attribute="ThreadCount" resultAlias="jvm.thread"/>
+        <query objectName="java.lang:type=GarbageCollector,name=*" attribute="CollectionCount"/>
+        <query objectName="java.lang:type=GarbageCollector,name=*" attribute="CollectionTime"/>
+		
+		<!--
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TotalLogEntry" attribute="CallCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TotalLogEntry" attribute="ErrorCallCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TotalLogEntry" attribute="TotalDuration"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TotalLogEntry" attribute="TotalResponseSize"/>
+        
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageDuration"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumDuration"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumDuration"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="AverageResponseSize"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MinimumResponseSize"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="MaximumResponseSize"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="CallCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="ErrorCallCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="ErrorCallPercentage"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="CacheEnabledCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="CacheEnabledPercentage"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="CacheHitCount"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="CacheHitPercentage"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="TotalDuration"/>
+        <query objectName="com.ibm.profiler:ID=*,interval=*,MetricType=TimeIntervalLogEntry" attribute="TotalResponseSize"/>
+		-->
+		
+        <!-- Cassandra -->
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=CompletedTasks" attribute="Value"
+               resultAlias="cass.CommitLog.Complete"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=TotalDiskSpaceUsed" attribute="Value"
+               resultAlias="cass.ColumnFamily.TotalDisk"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=MaxRowSize" attribute="Value"
+               resultAlias="cass.ColumnFamily.MaxRowSize"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=MeanRowSize" attribute="Value"
+               resultAlias="cass.ColumnFamily.MeanRowSize"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=MinRowSize" attribute="Value"
+               resultAlias="cass.ColumnFamily.MinRowSize"/>
+        <query objectName="org.apache.cassandra.metrics:type=Client,name=connectedNativeClients" attribute="Value"
+               resultAlias="cass.Client.ConnectionNative"/>
+        <query objectName="org.apache.cassandra.metrics:type=Client,name=connectedThriftClients" attribute="Value"
+               resultAlias="cass.Client.ConnectionThrift"/>
+			   <!--
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnCommit" attribute="Count"
+               resultAlias="cass.CommitLog.CommitWait.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnCommit" attribute="Max"
+               resultAlias="cass.CommitLog.WaitMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnCommit" attribute="Min"
+               resultAlias="cass.CommitLog.WaitMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnCommit" attribute="Mean"
+               resultAlias="cass.CommitLog.WaitMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnCommit" attribute="OneMinuteRate"
+               resultAlias="cass.CommitLog.CommitWait.OneMinRate"/>
+			   <!--
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnSegmentAllocation" attribute="Count"
+               resultAlias="cass.CommitLog.CommitSegmentWait.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnSegmentAllocation" attribute="Max"
+               resultAlias="cass.CommitLog.WaitOnSegMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnSegmentAllocation" attribute="Min"
+               resultAlias="cass.CommitLog.WaitOnSegMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnSegmentAllocation" attribute="Mean"
+               resultAlias="cass.CommitLog.WaitOnSegMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=CommitLog,name=WaitingOnSegmentAllocation" attribute="OneMinuteRate"
+               resultAlias="cass.CommitLog.CommitSegmentWait.OneMinRate"/>
+			   
+			   
+			   
+			   <!--
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.ColumnRead.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadLatency" attribute="Max"
+               resultAlias="cass.ColumnFamily.ReadLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadLatency" attribute="Min"
+               resultAlias="cass.ColumnFamily.ReadLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadLatency" attribute="Mean"
+               resultAlias="cass.ColumnFamily.ReadLatencyMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadLatency" attribute="OneMinuteRate"
+               resultAlias="cass.ColumnFamily.ColumnRead.OneMinRate"/>
+			   
+			    <!--
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.ColumnRange.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeLatency" attribute="Max"
+               resultAlias="cass.ColumnFamily.RangeLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeLatency" attribute="Min"
+               resultAlias="cass.ColumnFamily.RangeLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeLatency" attribute="Mean"
+               resultAlias="cass.ColumnFamily.RangeLatencyMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeLatency" attribute="OneMinuteRate"
+               resultAlias="cass.ColumnFamily.ColumnRange.OneMinRate"/>
+			   
+			   
+			    <!--
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.ColumnWrite.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteLatency" attribute="Max"
+               resultAlias="cass.ColumnFamily.WriteLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteLatency" attribute="Min"
+               resultAlias="cass.ColumnFamily.WriteLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteLatency" attribute="Mean"
+               resultAlias="cass.ColumnFamily.WriteLatencyMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteLatency" attribute="OneMinuteRate"
+               resultAlias="cass.ColumnFamily.ColumnWrite.OneMinRate"/>
+			   
+			   
+			    <!--
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRead.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency" attribute="Max"
+               resultAlias="cass.ClientRequest.ReadLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency" attribute="Min"
+               resultAlias="cass.ClientRequest.ReadLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency" attribute="Mean"
+               resultAlias="cass.ClientRequest.ReadLatencyMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Latency" attribute="OneMinuteRate"
+               resultAlias="cass.ClientRequest.ClientRead.OneMinRate"/>
+			   
+			   
+			    <!--
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Latency" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientWrite.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Latency" attribute="Max"
+               resultAlias="cass.ClientRequest.WriteLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Latency" attribute="Min"
+               resultAlias="cass.ClientRequest.WriteLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Latency" attribute="Mean"
+               resultAlias="cass.ClientRequest.WriteLatencyMean"/>
+			   -->
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Latency" attribute="OneMinuteRate"
+               resultAlias="cass.ClientRequest.ClientWrite.OneMinRate"/>
+			   
+			   
+			   
+			   <!--
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Latency" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRangeSlice.Count"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Latency" attribute="Max"
+               resultAlias="cass.ClientRequest.RangeSliceLatencyMax"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Latency" attribute="Min"
+               resultAlias="cass.ClientRequest.RangeSliceLatencyMin"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Latency" attribute="Mean"
+               resultAlias="cass.ClientRequest.RangeSliceLatencyMean"/>
+			   -->
+			   
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Latency" attribute="OneMinuteRate"
+               resultAlias="cass.ClientRequest.ClientRangeSlice.OneMinRate"/>
+			   
+			   
+        <query objectName="org.apache.cassandra.metrics:type=Compaction,name=BytesCompacted" attribute="Count"
+               resultAlias="cass.Compaction.Bytes"/>
+        <query objectName="org.apache.cassandra.metrics:type=Compaction,name=TotalCompactionsCompleted" attribute="Count"
+               resultAlias="cass.Compaction.Count"/>
+			   
+			   <!--
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=ReadTotalLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.ReadTotLatency"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=RangeTotalLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.RangeTotLatency"/>
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=WriteTotalLatency" attribute="Count"
+               resultAlias="cass.ColumnFamily.WriteTotLatency"/>
+			   -->
+			   
+        <query objectName="org.apache.cassandra.metrics:type=ColumnFamily,name=TombstoneScannedHistogram" attribute="Count"
+               resultAlias="cass.ColumnFamily.TombsScannedHist"/>
+			   
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Unavailables" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRead.Unavailable"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Read,name=Timeouts" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRead.Timeout"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Unavailables" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientWrite.Unavailable"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=Write,name=Timeouts" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientWrite.Timeout"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Unavailables" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRangeSlice.Unavailable"/>
+        <query objectName="org.apache.cassandra.metrics:type=ClientRequest,scope=RangeSlice,name=Timeouts" attribute="Count"
+               resultAlias="cass.ClientRequest.ClientRangeSlice.Timeout"/>
+			   
+        <query objectName="org.apache.cassandra.net:type=FailureDetector" attribute="UpEndpointCount"
+               resultAlias="cass.Net.UpCount"/>
+        <query objectName="org.apache.cassandra.net:type=FailureDetector" attribute="DownEndpointCount"
+               resultAlias="cass.Net.DownCount"/>
+
+    </queries>
+    <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
+        <host>GRAFANA_SERVER_NAME</host>
+        <port>GRAFANA_SERVER_PORT</port>
+        <namePrefix>server.????.app.Cassandra.</namePrefix>
+    </outputWriter>
+    <!-- 
+    <outputWriter class="org.jmxtrans.agent.FileOverwriterOutputWriter">
+        <fileName>../log/jmxtransagent.output.txt</fileName>
+        <maxFileSize>50</maxFileSize>
+        <maxBackupIndex>5</maxBackupIndex>
+    </outputWriter>
+    <outputWriter class="org.jmxtrans.agent.ConsoleOutputWriter"/>
+     -->
+    <collectIntervalInSeconds>4</collectIntervalInSeconds>
+</jmxtrans-agent>

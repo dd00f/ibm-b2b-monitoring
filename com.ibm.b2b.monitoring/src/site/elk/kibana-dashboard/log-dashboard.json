@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "Log-Dashboard",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Log Dashboard",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"Log-Count-By-Type\",\"panelIndex\":1,\"row\":1,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":5,\"id\":\"Log-Count-By-Source\",\"panelIndex\":2,\"row\":1,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":9,\"id\":\"Log-Count-By-Level\",\"panelIndex\":3,\"row\":1,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Log-Count-By-Tags\",\"panelIndex\":4,\"row\":5,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-3\":{\"vis\":{\"colors\":{\"ERROR-CONSOLE\":\"#BF1B00\",\"ERROR\":\"#BF1B00\",\"INFO\":\"#7EB26D\",\"AUDIT\":\"#64B0C8\",\"CONSOLE\":\"#70DBED\",\"WARN\":\"#F2C96D\",\"ALL\":\"#508642\"}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}}}]}"
+      }
+    }
+  }
+]

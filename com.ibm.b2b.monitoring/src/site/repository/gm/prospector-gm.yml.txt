@@ -24,5 +24,6 @@ filebeat:
       scan_frequency: 5s
       clean_removed: true
       close_removed: true
+      close_inactive: 5m
       max_bytes: 2000000
       #tail_files: false

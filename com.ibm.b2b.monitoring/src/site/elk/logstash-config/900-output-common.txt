@@ -10,14 +10,14 @@ output {
 	# which causes the index name to stop working for performance metrics
 	if "Metric" in [tags] {
 		elasticsearch {
-			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			hosts => [ "localhost:9200" ]
 			index => "profiler-%{+YYYY.MM.dd}"
 			# document_type => "%{[@metadata][type]}"
 		}
 	}
 	else {
 		elasticsearch {
-			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			hosts => [ "localhost:9200" ]
 			index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
 			document_type => "%{[@metadata][type]}"
 		}

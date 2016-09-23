@@ -14,6 +14,7 @@ filebeat:
       document_type: zookeeper
       scan_frequency: 5s
       max_bytes: 2000000
+      close_inactive: 1h
       multiline:
         pattern: ^[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,},[0-9]{1,} \[
         negate: true

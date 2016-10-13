@@ -1,0 +1,14 @@
+
+filter {
+
+	if "logstash-metric" in [tags] {
+		ruby {
+	    	init => "require 'socket'"
+	    	code => "event['host'] = Socket.gethostname"
+	  	}
+	  	grok {
+			match => { "host" => "(?<shortHost>[^\.]{1,})\.{0,}.*" }
+		}
+	}
+	
+}

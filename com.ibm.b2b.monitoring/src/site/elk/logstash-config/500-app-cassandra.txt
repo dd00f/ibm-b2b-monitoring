@@ -35,11 +35,14 @@ filter {
 			if [message] =~ "\[repair " or 
 			   [message] =~ "Repair.*finished" {
 			    metrics {
-					meter => "cassandra drop events %{shortHost}"
+					meter => "cassandraDropEvents"
 					add_tag => "logstash-drop-metric"
 					flush_interval => 60
-				}				   
-				drop { }
+					clear_interval => 60
+				}		
+				if "logstash-metric" not in [tags] {		   
+					drop { }
+				}
 			}
 		}		
 		

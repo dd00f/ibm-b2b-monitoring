@@ -39,22 +39,54 @@ filter {
 	
 	if [type] == "b2bi_core" {
 
-		grok {
-			match => { "message" => "\[(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,})\] (?<logLevel>[a-zA-Z0-9]{1,}) (?<message>(.|\r|\n)*)" }
-			overwrite => [ "message" ]
+		if [source] =~ "sci\.log\.D" {
+			grok {
+				match => { "message" => "(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,}):(?<logLevel>[a-zA-Z0-9]{1,}) {0,}:(?<message>(.|\r|\n)*)" }
+				overwrite => [ "message" ]
+			}
+		}
+		else {
+			grok {
+				match => { "message" => "\[(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,})\] (?<logLevel>[a-zA-Z0-9]{1,}) (?<message>(.|\r|\n)*)" }
+				overwrite => [ "message" ]
+			}
 		}
 		
 		mutate {
         	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
     	}		
+    	
+    	# ignore audit logs
+		if [logLevel] == "ALL" {
+			if [message] =~ "AUDIT: User " or 
+			   [message] =~ "internal login success" {
+			    metrics {
+					meter => "b2biDropEvents"
+					add_tag => "logstash-drop-metric"
+					flush_interval => 60
+					clear_interval => 60
+				}		
+				if "logstash-metric" not in [tags] {		   
+					drop { }
+				}
+			}
+		}	
 
-		date {
-			match => [ "dateTime", "YYYY-MM-dd HH:mm:ss.SSS ZZZ" ]
-			remove_field => ["dateTime"]
+		if [source] =~ "sci\.log\.D" {
+			date {
+				match => [ "dateTime", "YYYY-MM-dd HH:mm:ss.SSS,ZZZ" ]
+				remove_field => ["dateTime"]
+			}
+		}
+		else {
+			date {
+				match => [ "dateTime", "YYYY-MM-dd HH:mm:ss.SSS ZZZ" ]
+				remove_field => ["dateTime"]
+			}
 		}
 		mutate {
 			add_field => { "application" => "b2bi-container" }
-		}		
+		}
 	}
 	
 	if [type] == "b2bi_java" {

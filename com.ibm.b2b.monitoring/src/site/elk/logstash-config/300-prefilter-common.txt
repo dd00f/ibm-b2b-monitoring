@@ -7,15 +7,23 @@ filter {
 		}
 	}
 	
-    metrics {
-		meter => "total events"
-		add_tag => "logstash-metric"
-		flush_interval => 60
-	}
-	
 	if ([host]) {
 		grok {
 			match => { "host" => "(?<shortHost>[^\.]{1,})\.{0,}.*" }
 		}
 	}
+
+	metrics {
+		meter => "totalEvents-%{[@metadata][beat]}"
+		add_tag => "logstash-metric"
+		flush_interval => 60
+		clear_interval => 60
+	}
+    metrics {
+		meter => "totalEvents"
+		add_tag => "logstash-metric"
+		flush_interval => 60
+		clear_interval => 60
+	}
+
 }

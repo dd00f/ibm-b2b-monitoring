@@ -28,7 +28,7 @@ filebeat:
       close_inactive: 1h
       max_bytes: 2000000
       multiline:
-        pattern: ^\[[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,}\] [a-zA-Z0-9]{1,}
+        pattern: ^\[?[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,}\]?[ :][a-zA-Z0-9]{1,}
         negate: true
         match: after
         max_lines: 5000
@@ -57,7 +57,7 @@ filebeat:
       scan_frequency: 5s
       clean_removed: true
       close_removed: true
-      close_inactive: 5m
+      close_inactive: 5s
       max_bytes: 2000000
       #tail_files: false
     -
@@ -69,6 +69,6 @@ filebeat:
       scan_frequency: 5s
       clean_removed: true
       close_removed: true
-      close_inactive: 5m
+      close_inactive: 5s
       max_bytes: 2000000
       #tail_files: false

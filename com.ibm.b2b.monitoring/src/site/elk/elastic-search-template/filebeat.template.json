@@ -24,6 +24,9 @@
         "@timestamp": {
           "type": "date"
         },
+        "serverTime": {
+          "type": "date"
+        },        
         "message": {
           "type": "string",
           "index": "analyzed"
@@ -32,6 +35,10 @@
           "type": "long",
           "doc_values": "true"
         },
+        "serverLag": {
+          "type": "long",
+          "doc_values": "true"
+        },        
         "logLevel": {
           "type": "string",
           "index": "not_analyzed"

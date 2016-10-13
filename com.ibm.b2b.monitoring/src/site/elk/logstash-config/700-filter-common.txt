@@ -3,17 +3,19 @@ filter {
 
 	if [type] == "filesystem" {
 	    metrics {
-			meter => "filesystem events"
+			meter => "filesystemEvents"
 			add_tag => "logstash-metric"
 			flush_interval => 60
+			clear_interval => 60
 		}	
 	}
 
 	if [type] == "process" {
 	    metrics {
-			meter => "process events"
+			meter => "processEvents"
 			add_tag => "logstash-metric"
 			flush_interval => 60
+			clear_interval => 60
 		}	
 					
 		if [proc][name] == "java" {
@@ -102,11 +104,14 @@ filter {
 
 		if [logLevel] =~ "[0-9]" {
 		    metrics {
-				meter => "liberty debug drop events %{shortHost}"
+				meter => "libertyDebugDropEvents"
 				add_tag => "logstash-drop-metric"
 				flush_interval => 60
-			}			
-			drop { }
+				clear_interval => 60
+			}
+			if "logstash-metric" not in [tags] {
+				drop { }
+			}
 		}
 		else if [logLevel] == "E" {
 			mutate
@@ -153,11 +158,8 @@ filter {
 	
 	if "Metric" in [tags] {
 	
-	    metrics {
-			meter => "profiler events"
-			add_tag => "logstash-metric"
-			flush_interval => 60
-		}	
+		# disable metrics until the infrastructure can handle it.
+		drop { }
 	
 		# "dir/performance-metrics-2016-08-11T18-11-25Z.csv"
 		grok {
@@ -186,13 +188,48 @@ filter {
 			remove_field => ["message","logLevel","loggerName","threadName","threadId","count","fields","offset"]
 		}
 		
-		# skip metrics that haven't changed since the last time we gathered them
-		if [callCountRecent] == "0" {
-		    metrics {
-				meter => "profiler-drop-zero-call-events"
-			}			
-			drop { }
+	    metrics {
+			meter => "profilerEvents"
+			add_tag => "logstash-metric"
+			flush_interval => 60
+			clear_interval => 60
 		}
+				
+		# skip metrics that haven't changed since the last time we gathered them
+		if "logstash-metric" not in [tags] {
+			if [callCountRecent] == 0 {
+			    metrics {
+					meter => "profilerDropEvents"
+					flush_interval => 60
+					clear_interval => 60
+					add_tag => "logstash-metric"
+				}
+				if "logstash-metric" not in [tags] {
+					drop { }
+				}
+			}
+		}
+		
+		# create a fingerprint to remove duplicates
+		fingerprint {
+		    source => ["host", "@timestamp", "operation"]
+		    target => "[@metadata][fingerprintId]"
+		    key => "76767676"
+		    method => "SHA1"
+		    concatenate_sources => true
+		}
+		
+		ruby {
+		    init => "require 'time'"
+		    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
+		}
+		
+		metrics {
+			add_tag => "logstash-metric"
+			timer => [ "profilerServerLag", "%{serverLag}" ]
+			flush_interval => 60
+			clear_interval => 60
+		}			
 		
 	}
 	else {
@@ -207,14 +244,35 @@ filter {
 					uppercase => [ "logLevel" ]
 				}
 			}
+
+			# create a fingerprint to remove duplicates
+			fingerprint {
+			    source => ["host", "@timestamp", "message", "source"]
+			    target => "[@metadata][fingerprintId]"
+			    key => "76767676"
+			    method => "SHA1"
+			    concatenate_sources => true
+			}
+
+			ruby {
+			    init => "require 'time'"
+			    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
+			}
+			
+			metrics {
+				add_tag => "logstash-metric"
+				timer => [ "serverLag", "%{serverLag}" ]
+				flush_interval => 60
+				clear_interval => 60
+			}			
+			
+		    metrics {
+				meter => "filebeatLogEvents"
+				add_tag => "logstash-metric"
+				flush_interval => 60
+				clear_interval => 60
+			}			
 		}
-		
-		
-		ruby {
-		    init => "require 'time'"
-		    code => "event['[metrics][server_lag]'] = Time.now() - event['@timestamp']; event['[metrics][server_time]'] = Time.now()"
-		}
-		
 	}
 	
 

@@ -23,11 +23,14 @@ filter {
 			   [message] =~ "Closed socket connection for client" or
 			   [message] =~ "Processing mntr command from" {
 			    metrics {
-					meter => "zookeeper drop events %{shortHost}"
+					meter => "zookeeperDropEvent"
 					add_tag => "logstash-drop-metric"
 					flush_interval => 60
-				}				   
-				drop { }
+					clear_interval => 60
+				}
+				if "logstash-metric" not in [tags] {		   
+					drop { }
+				}
 			}
 		}
 		mutate {

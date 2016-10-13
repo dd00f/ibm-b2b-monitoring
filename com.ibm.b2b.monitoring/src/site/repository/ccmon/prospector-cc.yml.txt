@@ -79,7 +79,7 @@ filebeat:
       scan_frequency: 5s
       clean_removed: true
       close_removed: true
-      close_inactive: 5m
+      close_inactive: 5s
       max_bytes: 2000000
     -
       paths:
@@ -90,5 +90,5 @@ filebeat:
       scan_frequency: 5s
       clean_removed: true
       close_removed: true
-      close_inactive: 5m
+      close_inactive: 5s
       max_bytes: 2000000

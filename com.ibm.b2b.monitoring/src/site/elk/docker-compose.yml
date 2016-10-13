@@ -8,7 +8,7 @@ elasticsearch:
     - /var/elasticsearch:/usr/share/elasticsearch/data
 logstash:
   image: logstash:latest
-  command: logstash -f /etc/logstash/conf.d --auto-reload --reload-interval 10
+  command: logstash -f /etc/logstash/conf.d --auto-reload --reload-interval 60
   volumes:
     - ./logstash/config:/etc/logstash/conf.d
   ports:

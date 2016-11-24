@@ -20,6 +20,7 @@ filebeat:
         - GM_DIR/usr/servers/mailboxui/logs/performance-metrics-*.csv
       encoding: utf-8
       input_type: log
+      exclude_lines: ["^([^,]{1,},){12}0,"]
       document_type: gm_web_metrics
       scan_frequency: 5s
       clean_removed: true

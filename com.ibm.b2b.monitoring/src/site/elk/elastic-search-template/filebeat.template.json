@@ -26,7 +26,10 @@
         },
         "serverTime": {
           "type": "date"
-        },        
+        },       
+        "indexingTime": {
+          "type": "date"
+        },  
         "message": {
           "type": "string",
           "index": "analyzed"
@@ -38,7 +41,11 @@
         "serverLag": {
           "type": "long",
           "doc_values": "true"
-        },        
+        },      
+        "indexingLag": {
+          "type": "long",
+          "doc_values": "true"
+        },  
         "logLevel": {
           "type": "string",
           "index": "not_analyzed"

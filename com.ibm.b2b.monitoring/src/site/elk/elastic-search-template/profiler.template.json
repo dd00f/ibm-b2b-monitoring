@@ -27,10 +27,17 @@
         "serverTime": {
           "type": "date"
         },
+        "indexingTime": {
+          "type": "date"
+        },
         "serverLag": {
           "type": "long",
           "doc_values": "true"
-        },          
+        },         
+        "indexingLag": {
+          "type": "long",
+          "doc_values": "true"
+        },  
             "operation": {
               "index": "not_analyzed",
               "type": "string"

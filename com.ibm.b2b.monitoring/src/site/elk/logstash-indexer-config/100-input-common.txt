@@ -1,0 +1,6 @@
+input {
+	kafka {
+		zk_connect => "pestvm009b.dub.usoh.ibm.com:2181"
+   		topic_id => "logstash"
+	}
+}

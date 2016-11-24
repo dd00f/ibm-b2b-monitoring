@@ -34,6 +34,13 @@ output {
 			document_type => "metric"
 		}
 	}
+	else {
+		elasticsearch {
+			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			index => "lostandfound-%{+YYYY.MM.dd}"
+			document_type => "%{[type]}"
+		}	
+	}
 	
 
 }

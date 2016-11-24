@@ -1,0 +1,18 @@
+
+output {
+
+	if "logstash-metric" in [tags] {
+		# logstash metrics
+		elasticsearch {
+			hosts => [ "pestvm005d.dub.usoh.ibm.com:9200" ]
+			index => "metric-%{+YYYY.MM.dd}"
+			document_type => "metric"
+		}
+	}
+	else {
+		kafka {
+			bootstrap_servers => "pestvm009b.dub.usoh.ibm.com:9092"
+	   		topic_id => "logstash"
+		}
+	}
+}

@@ -12,9 +12,13 @@ filter {
 			match => { "host" => "(?<shortHost>[^\.]{1,})\.{0,}.*" }
 		}
 	}
+	
+	mutate {
+		add_field => { "[beat][type]" => "%{[@metadata][beat]}" }
+	}	
 
 	metrics {
-		meter => "totalEvents-%{[@metadata][beat]}"
+		meter => "totalEvents-%{[beat][type]}"
 		add_tag => "logstash-metric"
 		flush_interval => 60
 		clear_interval => 60

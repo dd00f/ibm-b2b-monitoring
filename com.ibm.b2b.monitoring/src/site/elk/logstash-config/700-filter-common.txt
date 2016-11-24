@@ -159,7 +159,7 @@ filter {
 	if "Metric" in [tags] {
 	
 		# disable metrics until the infrastructure can handle it.
-		drop { }
+		# drop { }
 	
 		# "dir/performance-metrics-2016-08-11T18-11-25Z.csv"
 		grok {
@@ -208,32 +208,35 @@ filter {
 					drop { }
 				}
 			}
+			
+			if "logstash-metric" not in [tags] {
+				# create a fingerprint to remove duplicates
+				fingerprint {
+				    source => ["host", "@timestamp", "operation"]
+				    target => "[fingerprintId]"
+				    key => "76767676"
+				    method => "SHA1"
+				    concatenate_sources => true
+				}
+				
+				ruby {
+				    init => "require 'time'"
+				    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
+				}
+				
+				metrics {
+					add_tag => "logstash-metric"
+					timer => [ "profilerServerLag", "%{serverLag}" ]
+					flush_interval => 60
+					clear_interval => 60
+				}
+			}
+
 		}
-		
-		# create a fingerprint to remove duplicates
-		fingerprint {
-		    source => ["host", "@timestamp", "operation"]
-		    target => "[@metadata][fingerprintId]"
-		    key => "76767676"
-		    method => "SHA1"
-		    concatenate_sources => true
-		}
-		
-		ruby {
-		    init => "require 'time'"
-		    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
-		}
-		
-		metrics {
-			add_tag => "logstash-metric"
-			timer => [ "profilerServerLag", "%{serverLag}" ]
-			flush_interval => 60
-			clear_interval => 60
-		}			
 		
 	}
 	else {
-		if [@metadata][beat] == "filebeat" {
+		if [beat][type] == "filebeat" {
 			if ! [logLevel] {
 				mutate {
 					add_field => { "logLevel" => "UNKNOWN" }
@@ -248,7 +251,7 @@ filter {
 			# create a fingerprint to remove duplicates
 			fingerprint {
 			    source => ["host", "@timestamp", "message", "source"]
-			    target => "[@metadata][fingerprintId]"
+			    target => "[fingerprintId]"
 			    key => "76767676"
 			    method => "SHA1"
 			    concatenate_sources => true
@@ -272,6 +275,20 @@ filter {
 				flush_interval => 60
 				clear_interval => 60
 			}			
+		}
+		else if [beat][type] == "topbeat" {
+			# nothing to do, already counted accurately
+		}
+		else if "logstash-metric" not in [tags] {
+			mutate{
+				add_tag => [ "_lostAndFound" ]
+			}
+		    metrics {
+				meter => "lostAndFoundEvents"
+				add_tag => "logstash-metric"
+				flush_interval => 60
+				clear_interval => 60
+			}	
 		}
 	}
 	

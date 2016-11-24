@@ -36,7 +36,7 @@ filter {
 			   [message] =~ "Repair.*finished" {
 			    metrics {
 					meter => "cassandraDropEvents"
-					add_tag => "logstash-drop-metric"
+					add_tag => "logstash-metric"
 					flush_interval => 60
 					clear_interval => 60
 				}		

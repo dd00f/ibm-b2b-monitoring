@@ -24,7 +24,7 @@ filter {
 			   [message] =~ "Processing mntr command from" {
 			    metrics {
 					meter => "zookeeperDropEvent"
-					add_tag => "logstash-drop-metric"
+					add_tag => "logstash-metric"
 					flush_interval => 60
 					clear_interval => 60
 				}

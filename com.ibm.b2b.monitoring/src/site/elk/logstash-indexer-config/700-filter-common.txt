@@ -1,0 +1,35 @@
+
+filter {
+	
+	if "Metric" in [tags] {
+		
+		ruby {
+		    init => "require 'time'"
+		    code => "event['indexingLag'] = Time.now().tv_sec - Time.parse(event['serverTime']).tv_sec ;event['indexingTime'] = Time.now().utc().iso8601();"
+		}
+	
+	}
+	else {
+		if [beat][type] == "filebeat" {
+			ruby {
+			    init => "require 'time'"
+			    code => "event['indexingLag'] = Time.now().tv_sec - Time.parse(event['serverTime']).tv_sec ;event['indexingTime'] = Time.now().utc().iso8601();"
+			}
+		}
+	}
+	
+	metrics {
+		add_tag => "logstash-metric"
+		timer => [ "indexingLag", "%{indexingLag}" ]
+		flush_interval => 60
+		clear_interval => 60
+	}		
+	
+	metrics {
+		meter => "indexedEvents"
+		add_tag => "logstash-metric"
+		flush_interval => 60
+		clear_interval => 60
+	}
+
+}

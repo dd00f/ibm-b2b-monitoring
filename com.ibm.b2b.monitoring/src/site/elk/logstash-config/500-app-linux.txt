@@ -1,0 +1,49 @@
+
+filter {
+
+	# Nov 13 03:42:03 pestvm056a ascp[5693]: LOG Receiver has not received a packet for 2 seconds!
+
+	if [type] == "linux_messages" or [type] == "linux_yum" or [type] == "linux_secure" or [type] == "linux_cron" {
+
+		grok {
+			match => { "message" => "(?<dateTime>[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+		
+	}
+	
+	if [type] == "linux_up2date" {
+		# [Sun Oct 16 05:04:18 2016] up2date logging into up2date server
+		grok {
+			match => { "message" => "\[[a-zA-Z]{1,} (?<dateTime>[a-zA-Z]{3} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,})\] (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss YYYY ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+		
+		
+	}
+
+}

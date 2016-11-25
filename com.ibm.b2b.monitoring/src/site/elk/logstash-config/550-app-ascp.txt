@@ -1,0 +1,15 @@
+
+filter {
+
+	# ASCP logs are stored in linux messages with a ascp[] prefix.
+	# Nov 13 03:42:03 pestvm056a ascp[5693]: LOG Receiver has not received a packet for 2 seconds!
+
+	if [type] == "linux_messages" and [message] =~ " ascp\[[0-9]*\]: " {
+
+		mutate {
+			update => { "application" => "ascp" }
+		}
+		
+	}
+
+}

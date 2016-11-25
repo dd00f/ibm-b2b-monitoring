@@ -1,0 +1,18 @@
+
+filebeat:
+  # topbeat Prospectors
+  # 2016-11-20T10:49:58-05:00 WARN DNS lookup failure "pestvm005d.dub.usoh.ibm.com": lookup pestvm005d.dub.usoh.ibm.com on 9.0.128.50:53: dial udp 9.0.128.50:53: socket: too many open files
+  prospectors:
+    -
+      paths:
+        - /var/log/topbeat/topbeat.*
+      input_type: log
+      document_type: filebeat
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[0-9]{1,}-[0-9]{1,}-[0-9]{1,}T[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s

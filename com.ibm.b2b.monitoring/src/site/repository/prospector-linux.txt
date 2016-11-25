@@ -1,0 +1,70 @@
+
+filebeat:
+  # linux Prospectors
+  # Nov 13 03:42:14 pestvm056a ascp[424]: LOG Sender DS Qs ds/a/d/ao/eo/n/ap/rq/rd/ru/di/do=0/0/0/0/0/0/0/0/0/0/0/0 Rs o/i=4189/4189 mgmt backlog i/s/n =
+  prospectors:
+    -
+      paths:
+        - /var/log/messages*
+      input_type: log
+      document_type: linux_messages
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - /var/log/yum*
+      input_type: log
+      document_type: linux_yum
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - /var/log/secure*
+      input_type: log
+      document_type: linux_secure
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - /var/log/cron*
+      input_type: log
+      document_type: linux_cron
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s
+    -
+      paths:
+        - /var/log/up2date*
+      input_type: log
+      document_type: linux_up2date
+      scan_frequency: 5s
+      max_bytes: 2000000
+      multiline:
+        pattern: ^\[[a-zA-Z]{3} [a-zA-Z]{3} +[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,}\] 
+        negate: true
+        match: after
+        max_lines: 5000
+        timeout: 5s

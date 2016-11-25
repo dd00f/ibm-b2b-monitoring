@@ -111,7 +111,7 @@ echo installing filebeat
 service filebeat stop
 filebeat_config_file=/etc/filebeat/filebeat.yml
 mkdir /etc/systemd/system/filebeat.d
-wget -r http://jute.torolab.ibm.com/mcduffs/monitoring/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
+wget -r $repositoryurl/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
 wget -r https://download.elastic.co/beats/filebeat/filebeat-5.0.0-alpha5-x86_64.rpm -O $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
 sudo rpm -e filebeat
 sudo rpm -vi $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
@@ -124,6 +124,11 @@ echo update filebeat config
 sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$filebeat_config_file"
 sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$filebeat_config_file"
 echo start filebeat service
+
+wget -q $repositoryurl/prospector-topbeat.txt -O /etc/monitoring/filebeat-config/prospector-topbeat.yml
+wget -q $repositoryurl/prospector-filebeat.txt -O /etc/monitoring/filebeat-config/prospector-filebeat.yml
+wget -q $repositoryurl/prospector-linux.txt -O /etc/monitoring/filebeat-config/prospector-linux.yml
+
 service filebeat start
 
 if [ "$installtopbeat" = "true" ];

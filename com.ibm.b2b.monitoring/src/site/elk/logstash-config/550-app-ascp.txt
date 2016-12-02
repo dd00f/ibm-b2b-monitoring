@@ -10,6 +10,11 @@ filter {
 			update => { "application" => "ascp" }
 		}
 		
+		
+		if [message] =~ "(LOG Sender DS|LOG Add sender src|LOG FASP Transfer Start|LOG Add receiver src|LOG FASP Transfer Stop|LOG Receiver bl|LOG Empty docroot not a constraint|LOG Sender bl|LOG Receiver DS)" {
+			# drop verbose ASCP logs
+			drop { }
+		}
 	}
 
 }

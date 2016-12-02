@@ -11,7 +11,7 @@ filebeat:
       scan_frequency: 5s
       max_bytes: 2000000
       multiline:
-        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        pattern: ^[a-zA-Z]{3} *[0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
         negate: true
         match: after
         max_lines: 5000
@@ -24,7 +24,7 @@ filebeat:
       scan_frequency: 5s
       max_bytes: 2000000
       multiline:
-        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        pattern: ^[a-zA-Z]{3} *[0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
         negate: true
         match: after
         max_lines: 5000
@@ -37,7 +37,7 @@ filebeat:
       scan_frequency: 5s
       max_bytes: 2000000
       multiline:
-        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        pattern: ^[a-zA-Z]{3} *[0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
         negate: true
         match: after
         max_lines: 5000
@@ -50,7 +50,7 @@ filebeat:
       scan_frequency: 5s
       max_bytes: 2000000
       multiline:
-        pattern: ^[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
+        pattern: ^[a-zA-Z]{3} *[0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,} 
         negate: true
         match: after
         max_lines: 5000
@@ -63,7 +63,7 @@ filebeat:
       scan_frequency: 5s
       max_bytes: 2000000
       multiline:
-        pattern: ^\[[a-zA-Z]{3} [a-zA-Z]{3} +[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,}\] 
+        pattern: ^\[[a-zA-Z]{3} *[a-zA-Z]{3} +[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,}\] 
         negate: true
         match: after
         max_lines: 5000

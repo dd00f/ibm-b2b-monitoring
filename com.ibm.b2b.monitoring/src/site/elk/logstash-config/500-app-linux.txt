@@ -6,7 +6,7 @@ filter {
 	if [type] == "linux_messages" or [type] == "linux_yum" or [type] == "linux_secure" or [type] == "linux_cron" {
 
 		grok {
-			match => { "message" => "(?<dateTime>[a-zA-Z]{3} [0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			match => { "message" => "(?<dateTime>[a-zA-Z]{3} *[0-9]{1,} +[0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
 			overwrite => [ "message" ]
 		}
 
@@ -14,7 +14,7 @@ filter {
         	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
     	}
 		date {
-			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ" ]
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss YYYY ZZZ" ]
 			remove_field => ["dateTime"]
 		}
 		
@@ -27,7 +27,7 @@ filter {
 	if [type] == "linux_up2date" {
 		# [Sun Oct 16 05:04:18 2016] up2date logging into up2date server
 		grok {
-			match => { "message" => "\[[a-zA-Z]{1,} (?<dateTime>[a-zA-Z]{3} [0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,})\] (?<message>(.|\r|\n)*)" }
+			match => { "message" => "\[[a-zA-Z]{1,} (?<dateTime>[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [0-9]{1,})\] (?<message>(.|\r|\n)*)" }
 			overwrite => [ "message" ]
 		}
 
@@ -35,7 +35,7 @@ filter {
         	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
     	}
 		date {
-			match => [ "dateTime", "MMM dd HH:mm:ss YYYY ZZZ" ]
+			match => [ "dateTime", "MMM dd HH:mm:ss YYYY ZZZ", "MMM  d HH:mm:ss YYYY ZZZ" ]
 			remove_field => ["dateTime"]
 		}
 		

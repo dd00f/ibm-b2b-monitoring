@@ -1,0 +1,12 @@
+
+filebeat:
+  # filebeat Prospectors
+  prospectors:
+    -
+      paths:
+        - /var/log/zabbix/zabbix_agentd.log
+      input_type: log
+      document_type: zabbix-agent
+      scan_frequency: 5s
+      max_bytes: 2000000
+

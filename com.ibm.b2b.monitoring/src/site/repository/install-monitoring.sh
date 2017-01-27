@@ -108,7 +108,8 @@ fi
 
 echo installing filebeat
 
-service filebeat stop
+systemctl stop filebeat
+
 filebeat_config_file=/etc/filebeat/filebeat.yml
 mkdir /etc/systemd/system/filebeat.d
 wget -r $repositoryurl/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
@@ -128,14 +129,19 @@ echo start filebeat service
 wget -q $repositoryurl/prospector-topbeat.txt -O /etc/monitoring/filebeat-config/prospector-topbeat.yml
 wget -q $repositoryurl/prospector-filebeat.txt -O /etc/monitoring/filebeat-config/prospector-filebeat.yml
 wget -q $repositoryurl/prospector-linux.txt -O /etc/monitoring/filebeat-config/prospector-linux.yml
+wget -q $repositoryurl/prospector-zabbix-agent.txt -O /etc/monitoring/filebeat-config/prospector-zabbix-agent.yml
 
-service filebeat start
+systemctl start filebeat
+systemctl enable filebeat
+
 
 if [ "$installtopbeat" = "true" ];
 then
 	echo installing topbeat
 	topbeat_config_file=/etc/topbeat/topbeat.yml
-	service topbeat stop
+	
+	systemctl stop topbeat
+	
 	wget -r https://download.elastic.co/beats/topbeat/topbeat-1.2.3-x86_64.rpm -O $monitoringfolder/topbeat-1.2.3-x86_64.rpm
 	sudo rpm -e topbeat
 	sudo rpm -vi $monitoringfolder/topbeat-1.2.3-x86_64.rpm
@@ -146,7 +152,9 @@ then
 	sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$topbeat_config_file"
 	sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$topbeat_config_file"
 
-	service topbeat start
+	systemctl start topbeat
+	systemctl enable topbeat
+	
 else
 	echo Skipping topbeat installation.
 fi

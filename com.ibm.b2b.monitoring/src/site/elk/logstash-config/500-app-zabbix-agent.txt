@@ -1,0 +1,25 @@
+
+filter {
+
+	#  27886:20170125:162548.902 agent #1 started [collector]
+
+	if [type] == "zabbix-agent" {
+
+		grok {
+			match => { "message" => " ?(?<zabbixAgentProcId>[0-9]{1,}):(?<dateTime>[0-9]{1,}:[0-9]{1,}\.[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		date {
+			match => [ "dateTime", "YYYYMMdd:HHmmss.ZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "Zabbix-Agent" }
+		}
+			
+		
+	}
+
+}

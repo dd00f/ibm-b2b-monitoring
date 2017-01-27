@@ -9,10 +9,24 @@ output {
 			document_type => "metric"
 		}
 	}
-	else {
+	else if "Metric" in [tags] {
 		kafka {
 			bootstrap_servers => "pestvm009b.dub.usoh.ibm.com:9092"
-	   		topic_id => "logstash"
+	   		topic_id => "performance-metrics"
 		}
 	}
+	else if [beat][type] == "filebeat" {
+		kafka {
+			bootstrap_servers => "pestvm009b.dub.usoh.ibm.com:9092"
+	   		topic_id => "filebeat"
+		}
+	}
+	else if [beat][type] == "topbeat" {
+		kafka {
+			bootstrap_servers => "pestvm009b.dub.usoh.ibm.com:9092"
+	   		topic_id => "topbeat"
+		}
+	}	
+
+	
 }

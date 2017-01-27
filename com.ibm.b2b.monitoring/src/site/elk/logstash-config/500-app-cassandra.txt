@@ -33,7 +33,9 @@ filter {
 		# repair jobs in Cassandra can generate a large amount of logs.
 		if [logLevel] == "INFO" {
 			if [message] =~ "\[repair " or 
-			   [message] =~ "Repair.*finished" {
+			   [message] =~ "Repair.*finished" or
+			   [message] =~ "Spinning trying to "
+			   {
 			    metrics {
 					meter => "cassandraDropEvents"
 					add_tag => "logstash-metric"

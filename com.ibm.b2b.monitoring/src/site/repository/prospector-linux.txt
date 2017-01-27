@@ -68,3 +68,12 @@ filebeat:
         match: after
         max_lines: 5000
         timeout: 5s
+    -
+      paths:
+        - /var/log/audit/audit.log*
+      input_type: log
+      document_type: linux_audit
+      scan_frequency: 5s
+      max_bytes: 2000000
+
+        

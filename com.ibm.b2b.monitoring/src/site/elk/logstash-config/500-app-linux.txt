@@ -14,7 +14,7 @@ filter {
         	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
     	}
 		date {
-			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss YYYY ZZZ" ]
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss ZZZ" ]
 			remove_field => ["dateTime"]
 		}
 		
@@ -42,8 +42,23 @@ filter {
 		mutate {
 			add_field => { "application" => "%{[type]}" }
 		}
-		
-		
 	}
+	
+	if [type] == "linux_audit" {
+		# type=SYSCALL msg=audit(1485529179.256:66788): arch=c000003e syscall=2 success=no exit=-13 a0=7ffc17c46f60 a1=0 a2=1b6 a3=24 items=0 ppid=15791 pid=15793 auid=4294967295 uid=997 gid=995 euid=997 suid=997 fsuid=997 egid=995 sgid=995 fsgid=995 tty=(none) ses=4294967295 comm="mysql" exe="/usr/bin/mysql" subj=system_u:system_r:zabbix_agent_t:s0 key=(null)
+		grok {
+			match => { "message" => "type=(?<auditType>[a-zA-Z]{1,}) msg=audit\((?<auditEpoch>[0-9]{1,}\.[0-9]{1,}).*" }
+		}
+
+		date {
+			match => [ "auditEpoch", "UNIX" ]
+			timezone => "%{[@metadata][local_timezone]}"
+			remove_field => [ "auditEpoch" ]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+	}	
 
 }

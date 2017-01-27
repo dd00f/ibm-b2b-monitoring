@@ -64,6 +64,16 @@ filter {
 					replace => { "[proc][name]" => "java-pest" }
 				}
 			}
+			else if [proc][cmdline] =~ "graylog" {
+				mutate {
+					replace => { "[proc][name]" => "java-graylog" }
+				}
+			}
+			else if [proc][cmdline] =~ "kafka" {
+				mutate {
+					replace => { "[proc][name]" => "java-kafka" }
+				}
+			}			
 		}
 		else if [proc][name] == "node" {
 			if [proc][cmdline] =~ "kibana" {
@@ -73,223 +83,60 @@ filter {
 			}
 		}
 	}
-
-	if  "liberty" in [tags] {
-
-		mutate
-		{
-			gsub => ["message", "\r", ""]
-		}
-
-		grok {
-			match => { "message" => "\[(?<dateTime>[0-9]{1,}/[0-9]{1,}/[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,})\] (?<threadId>[a-zA-Z0-9]{1,}) (?<className>[^ ]{1,}) {1,}(?<logLevel>[a-zA-Z0-9]{1}) (?<message>(.|\r|\n)*)" }
-
-			overwrite => [ "message" ]
-		}
-		
-		if "_grokparsefailure" in [tags] and [message] =~ "\*{20,}" {
+	
+	if [beat][type] == "filebeat" {
+		if ! [logLevel] {
 			mutate {
-				remove_tag => [ "_grokparsefailure"]
-			}
-			mutate {
-				add_field => { "logLevel" => "INFO" }
+				add_field => { "logLevel" => "UNKNOWN" }
 			}
 		}
 		else {
-			date {
-				match => [ "dateTime", "MM/dd/YY HH:mm:ss:SSS zzz" ]
-				remove_field => ["dateTime"]
-			}
-		}
-
-		if [logLevel] =~ "[0-9]" {
-		    metrics {
-				meter => "libertyDebugDropEvents"
-				add_tag => "logstash-drop-metric"
-				flush_interval => 60
-				clear_interval => 60
-			}
-			if "logstash-metric" not in [tags] {
-				drop { }
-			}
-		}
-		else if [logLevel] == "E" {
-			mutate
-			{
-				replace => { "logLevel" => "ERROR" }
-			}
-		}
-		else if [logLevel] == "O" {
-			mutate
-			{
-				replace => { "logLevel" => "CONSOLE" }
-			}
-		}
-		else if [logLevel] == "R" {
-			mutate
-			{
-				replace => { "logLevel" => "ERROR-CONSOLE" }
-			}
-		}		
-		else if [logLevel] == "W" {
-			mutate
-			{
-				replace => { "logLevel" => "WARN" }
-			}
-		}
-		else if [logLevel] == "I" {
-			mutate
-			{
-				replace => { "logLevel" => "INFO" }
-			}
-		}
-		else if [logLevel] == "A" {
-			mutate
-			{
-				replace => { "logLevel" => "AUDIT" }
-			}
-		}
-		if [message] =~ "Name\,Number of calls\,Average" {
 			mutate{
-				add_tag => [ "Metric" ]
-			}
-		}  
-	}
-	
-	if "Metric" in [tags] {
-	
-		# disable metrics until the infrastructure can handle it.
-		# drop { }
-	
-		# "dir/performance-metrics-2016-08-11T18-11-25Z.csv"
-		grok {
-			match => {"source"  => ".*metrics-(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,}T[0-9]{1,}-[0-9]{1,}-[0-9]{1,})Z\.csv" }
-		}
-		
-		if "_grokparsefailure" not in [tags] {
-			date {
-				match => [ "dateTime", "YYYY-MM-dd'T'HH-mm-ss" ]
-				remove_field => ["dateTime"]
-				timezone => "UTC"
+				uppercase => [ "logLevel" ]
 			}
 		}
 
-		split { 
-			field => "message"
+		# create a fingerprint to remove duplicates
+		fingerprint {
+		    source => ["host", "@timestamp", "message", "source"]
+		    target => "[fingerprintId]"
+		    key => "76767676"
+		    method => "SHA1"
+		    concatenate_sources => true
 		}
 
-		# ignore title lines
-		if [message] =~ "Name\,Number of calls\,Average" {
-			drop { }
+		ruby {
+		    init => "require 'time'"
+		    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
 		}
 		
-		grok {
-			match => {"message"  => "(?<operation>[^,]{1,}),%{NUMBER:callCount:int},%{NUMBER:averageDurationMs:float},%{NUMBER:minimumDurationMs:float},%{NUMBER:maximumDurationMs:float},%{NUMBER:totalDurationMs:float},%{NUMBER:averageSize:float},%{NUMBER:maximumSize:float},%{NUMBER:totalSize:float},%{NUMBER:cacheEnabledCount:int},%{NUMBER:cacheHitCount:int},%{NUMBER:errorCount:int},%{NUMBER:callCountRecent:int},%{NUMBER:averageDurationMsRecent:float},%{NUMBER:minimumDurationMsRecent:float},%{NUMBER:maximumDurationMsRecent:float},%{NUMBER:totalDurationMsRecent:float},%{NUMBER:averageSizeRecent:float},%{NUMBER:maximumSizeRecent:float},%{NUMBER:totalSizeRecent:float},%{NUMBER:cacheEnabledCountRecent:int},%{NUMBER:cacheHitCountRecent:int},%{NUMBER:errorCountRecent:int}" }
-			remove_field => ["message","logLevel","loggerName","threadName","threadId","count","fields","offset"]
-		}
+		metrics {
+			add_tag => "logstash-metric"
+			timer => [ "serverLag", "%{serverLag}" ]
+			flush_interval => 60
+			clear_interval => 60
+		}			
 		
 	    metrics {
-			meter => "profilerEvents"
+			meter => "filebeatLogEvents"
 			add_tag => "logstash-metric"
 			flush_interval => 60
 			clear_interval => 60
-		}
-				
-		# skip metrics that haven't changed since the last time we gathered them
-		if "logstash-metric" not in [tags] {
-			if [callCountRecent] == 0 {
-			    metrics {
-					meter => "profilerDropEvents"
-					flush_interval => 60
-					clear_interval => 60
-					add_tag => "logstash-metric"
-				}
-				if "logstash-metric" not in [tags] {
-					drop { }
-				}
-			}
-			
-			if "logstash-metric" not in [tags] {
-				# create a fingerprint to remove duplicates
-				fingerprint {
-				    source => ["host", "@timestamp", "operation"]
-				    target => "[fingerprintId]"
-				    key => "76767676"
-				    method => "SHA1"
-				    concatenate_sources => true
-				}
-				
-				ruby {
-				    init => "require 'time'"
-				    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
-				}
-				
-				metrics {
-					add_tag => "logstash-metric"
-					timer => [ "profilerServerLag", "%{serverLag}" ]
-					flush_interval => 60
-					clear_interval => 60
-				}
-			}
-
-		}
-		
+		}			
 	}
-	else {
-		if [beat][type] == "filebeat" {
-			if ! [logLevel] {
-				mutate {
-					add_field => { "logLevel" => "UNKNOWN" }
-				}
-			}
-			else {
-				mutate{
-					uppercase => [ "logLevel" ]
-				}
-			}
-
-			# create a fingerprint to remove duplicates
-			fingerprint {
-			    source => ["host", "@timestamp", "message", "source"]
-			    target => "[fingerprintId]"
-			    key => "76767676"
-			    method => "SHA1"
-			    concatenate_sources => true
-			}
-
-			ruby {
-			    init => "require 'time'"
-			    code => "event['serverLag'] = Time.now().tv_sec - event['@timestamp'].tv_sec ;event['serverTime'] = Time.now().utc().iso8601();"
-			}
-			
-			metrics {
-				add_tag => "logstash-metric"
-				timer => [ "serverLag", "%{serverLag}" ]
-				flush_interval => 60
-				clear_interval => 60
-			}			
-			
-		    metrics {
-				meter => "filebeatLogEvents"
-				add_tag => "logstash-metric"
-				flush_interval => 60
-				clear_interval => 60
-			}			
+	else if [beat][type] == "topbeat" {
+		# nothing to do, already counted accurately
+	}
+	else if "logstash-metric" not in [tags] {
+		mutate{
+			add_tag => [ "_lostAndFound" ]
 		}
-		else if [beat][type] == "topbeat" {
-			# nothing to do, already counted accurately
-		}
-		else if "logstash-metric" not in [tags] {
-			mutate{
-				add_tag => [ "_lostAndFound" ]
-			}
-		    metrics {
-				meter => "lostAndFoundEvents"
-				add_tag => "logstash-metric"
-				flush_interval => 60
-				clear_interval => 60
-			}	
-		}
+	    metrics {
+			meter => "lostAndFoundEvents"
+			add_tag => "logstash-metric"
+			flush_interval => 60
+			clear_interval => 60
+		}	
 	}
 	
 

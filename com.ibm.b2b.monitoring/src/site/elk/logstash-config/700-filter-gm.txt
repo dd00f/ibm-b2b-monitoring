@@ -1,0 +1,16 @@
+
+filter {
+
+	if [type] == "gm_web" {
+
+		# ASCP generates error logs that occur under normal operating conditions.
+		if [logLevel] == "ERROR" {
+			if [message] =~ "CBXRN0004E" {
+				mutate {
+					update => { "logLevel" => "INFO" }
+				}
+			}
+		}
+	}
+	
+}

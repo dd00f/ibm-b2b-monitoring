@@ -1,0 +1,86 @@
+
+filter {
+
+	if  "liberty" in [tags] {
+
+		mutate
+		{
+			gsub => ["message", "\r", ""]
+		}
+
+		grok {
+			match => { "message" => "\[(?<dateTime>[0-9]{1,}/[0-9]{1,}/[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}:[0-9]{1,} [a-zA-Z]{1,})\] (?<threadId>[a-zA-Z0-9]{1,}) (?<className>[^ ]{1,}) {1,}(?<logLevel>[a-zA-Z0-9]{1}) (?<message>(.|\r|\n)*)" }
+
+			overwrite => [ "message" ]
+		}
+		
+		if "_grokparsefailure" in [tags] and [message] =~ "\*{20,}" {
+			mutate {
+				remove_tag => [ "_grokparsefailure"]
+			}
+			mutate {
+				add_field => { "logLevel" => "INFO" }
+			}
+		}
+		else {
+			date {
+				match => [ "dateTime", "MM/dd/YY HH:mm:ss:SSS zzz" ]
+				remove_field => ["dateTime"]
+			}
+		}
+
+		if [logLevel] =~ "[0-9]" {
+		    metrics {
+				meter => "libertyDebugDropEvents"
+				add_tag => "logstash-drop-metric"
+				flush_interval => 60
+				clear_interval => 60
+			}
+			if "logstash-metric" not in [tags] {
+				drop { }
+			}
+		}
+		else if [logLevel] == "E" {
+			mutate
+			{
+				replace => { "logLevel" => "ERROR" }
+			}
+		}
+		else if [logLevel] == "O" {
+			mutate
+			{
+				replace => { "logLevel" => "CONSOLE" }
+			}
+		}
+		else if [logLevel] == "R" {
+			mutate
+			{
+				replace => { "logLevel" => "ERROR-CONSOLE" }
+			}
+		}		
+		else if [logLevel] == "W" {
+			mutate
+			{
+				replace => { "logLevel" => "WARN" }
+			}
+		}
+		else if [logLevel] == "I" {
+			mutate
+			{
+				replace => { "logLevel" => "INFO" }
+			}
+		}
+		else if [logLevel] == "A" {
+			mutate
+			{
+				replace => { "logLevel" => "AUDIT" }
+			}
+		}
+		if [message] =~ "Name\,Number of calls\,Average" {
+			mutate{
+				add_tag => [ "Metric" ]
+			}
+		}  
+	}
+	
+}

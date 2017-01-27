@@ -1,6 +1,14 @@
 input {
 	kafka {
 		zk_connect => "pestvm009b.dub.usoh.ibm.com:2181"
-   		topic_id => "logstash"
+   		# topic_id => ["filebeat", "performance-metrics", "topbeat" ]
+   		# Filebeat commented out, processed by Graylog.
+   		topic_id => "topbeat"
+	}
+	kafka {
+		zk_connect => "pestvm009b.dub.usoh.ibm.com:2181"
+   		# topic_id => ["filebeat", "performance-metrics", "topbeat" ]
+   		# Filebeat commented out, processed by Graylog.
+   		topic_id => "performance-metrics"
 	}
 }

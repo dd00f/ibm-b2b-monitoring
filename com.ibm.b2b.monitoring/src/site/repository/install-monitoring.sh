@@ -17,8 +17,8 @@ nmonmonitoringfolder=$monitoringfolder/nmon
 hostname=`hostname -s`
 
 echo making monitoring dir
-mkdir -p $monitoringfolder
-mkdir -p $nmonmonitoringfolder
+sudo mkdir -p $monitoringfolder
+sudo mkdir -p $nmonmonitoringfolder
 cd $monitoringfolder
 
 echo "export GRAFANA_SERVER=$grafanaserver
@@ -52,7 +52,7 @@ then
 	osversionfile=/etc/redhat-release
 
 
-	if grep -q ' 7\.2' "$osversionfile"
+	if [ grep -q ' 7\.2' "$osversionfile" ] || [ grep -q ' 7\.3' "$osversionfile" ] ;
 		then
 		echo Red Hat 7.2 detected, download of nmon required.
 		wget "http://downloads.sourceforge.net/project/nmon/nmon16e_x86_rhel72?r=http%3A%2F%2Fnmon.sourceforge.net%2Fpmwiki.php%3Fn%3DSite.Download&ts=1467990407&use_mirror=tenet" -O $nmonmonitoringfolder/nmon16e_x86_rhel72
@@ -67,7 +67,7 @@ then
 		then
 		echo Red Hat 6 detected, getting corresponding epel repository
 		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm -O $nmonmonitoringfolder/epel-release-latest-6.noarch.rpm
-		rpm -Uhv $nmonmonitoringfolder/epel-release-latest-6.noarch.rpm	   
+		rpm -Uhv $nmonmonitoringfolder/epel-release-latest-6.noarch.rpm
 	else
 		echo Not Red Hat 7 or 6, unsupported OS detected.
 		exit 1
@@ -106,55 +106,105 @@ then
 
 fi
 
-echo installing filebeat
 
-systemctl stop filebeat
+if [ -b "/etc/redhat-release" ]
+then
+	echo installing filebeat - Redhat
+	systemctl stop filebeat
+	filebeat_config_file=/etc/filebeat/filebeat.yml
+	mkdir /etc/systemd/system/filebeat.d
+	wget -r $repositoryurl/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
+	wget -r https://download.elastic.co/beats/filebeat/filebeat-5.0.0-alpha5-x86_64.rpm -O $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
+	sudo rpm -e filebeat
+	sudo rpm -vi $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
+	echo get filebeat config
+	echo wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
+	wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
+	mkdir $monitoringfolder/filebeat-config
+	chmod a+rw $monitoringfolder/filebeat-config
+	echo update filebeat config
+	sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$filebeat_config_file"
+	sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$filebeat_config_file"
+	echo start filebeat service
 
-filebeat_config_file=/etc/filebeat/filebeat.yml
-mkdir /etc/systemd/system/filebeat.d
-wget -r $repositoryurl/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
-wget -r https://download.elastic.co/beats/filebeat/filebeat-5.0.0-alpha5-x86_64.rpm -O $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
-sudo rpm -e filebeat
-sudo rpm -vi $monitoringfolder/filebeat-5.0.0-alpha5-x86_64.rpm
-echo get filebeat config
-echo wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
-wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
-mkdir $monitoringfolder/filebeat-config
-chmod a+rw $monitoringfolder/filebeat-config
-echo update filebeat config
-sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$filebeat_config_file"
-sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$filebeat_config_file"
-echo start filebeat service
+	wget -q $repositoryurl/prospector-topbeat.txt -O /etc/monitoring/filebeat-config/prospector-topbeat.yml
+	# wget -q $repositoryurl/prospector-filebeat.txt -O /etc/monitoring/filebeat-config/prospector-filebeat.yml
+	wget -q $repositoryurl/prospector-linux.txt -O /etc/monitoring/filebeat-config/prospector-linux.yml
+	wget -q $repositoryurl/prospector-zabbix-agent.txt -O /etc/monitoring/filebeat-config/prospector-zabbix-agent.yml
 
-wget -q $repositoryurl/prospector-topbeat.txt -O /etc/monitoring/filebeat-config/prospector-topbeat.yml
-wget -q $repositoryurl/prospector-filebeat.txt -O /etc/monitoring/filebeat-config/prospector-filebeat.yml
-wget -q $repositoryurl/prospector-linux.txt -O /etc/monitoring/filebeat-config/prospector-linux.yml
-wget -q $repositoryurl/prospector-zabbix-agent.txt -O /etc/monitoring/filebeat-config/prospector-zabbix-agent.yml
+	systemctl start filebeat
+	systemctl enable filebeat
+else
+	echo installing filebeat - Debian
+	systemctl stop filebeat
+	filebeat_config_file=/etc/filebeat/filebeat.yml
+	sudo mkdir /etc/systemd/system/filebeat.d
+	sudo wget -r $repositoryurl/override.conf.txt -O /etc/systemd/system/filebeat.d/override.conf.txt
+	wget -r https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.2.0-amd64.deb -O $monitoringfolder/filebeat-5.2.0-amd64.deb
+	sudo dpkg -i $monitoringfolder/filebeat-5.2.0-amd64.deb
+	echo get filebeat config
+	echo wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
+	wget -r $repositoryurl/filebeat.yml.txt -O $filebeat_config_file
+	mkdir $monitoringfolder/filebeat-config
+	chmod a+rw $monitoringfolder/filebeat-config
+	echo update filebeat config
+	sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$filebeat_config_file"
+	sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$filebeat_config_file"
+	echo start filebeat service
 
-systemctl start filebeat
-systemctl enable filebeat
+	wget -q $repositoryurl/prospector-topbeat.txt -O /etc/monitoring/filebeat-config/prospector-topbeat.yml
+	# wget -q $repositoryurl/prospector-filebeat.txt -O /etc/monitoring/filebeat-config/prospector-filebeat.yml
+	wget -q $repositoryurl/prospector-linux.txt -O /etc/monitoring/filebeat-config/prospector-linux.yml
+	wget -q $repositoryurl/prospector-zabbix-agent.txt -O /etc/monitoring/filebeat-config/prospector-zabbix-agent.yml
+
+	systemctl start filebeat
+	systemctl enable filebeat
+fi
+
+
 
 
 if [ "$installtopbeat" = "true" ];
 then
-	echo installing topbeat
-	topbeat_config_file=/etc/topbeat/topbeat.yml
-	
-	systemctl stop topbeat
-	
-	wget -r https://download.elastic.co/beats/topbeat/topbeat-1.2.3-x86_64.rpm -O $monitoringfolder/topbeat-1.2.3-x86_64.rpm
-	sudo rpm -e topbeat
-	sudo rpm -vi $monitoringfolder/topbeat-1.2.3-x86_64.rpm
 
-	wget -r $repositoryurl/topbeat.yml.txt -O $topbeat_config_file
-	chmod a+rw $topbeat_config_file
+	if [ -b "/etc/redhat-release" ]
+	then
+		echo installing topbeat red hat
+		topbeat_config_file=/etc/topbeat/topbeat.yml
+		
+		systemctl stop topbeat
+		
+		wget -r https://download.elastic.co/beats/topbeat/topbeat-1.2.3-x86_64.rpm -O $monitoringfolder/topbeat-1.2.3-x86_64.rpm
+		sudo rpm -e topbeat
+		sudo rpm -vi $monitoringfolder/topbeat-1.2.3-x86_64.rpm
 
-	sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$topbeat_config_file"
-	sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$topbeat_config_file"
+		wget -r $repositoryurl/topbeat.yml.txt -O $topbeat_config_file
+		chmod a+rw $topbeat_config_file
 
-	systemctl start topbeat
-	systemctl enable topbeat
-	
+		sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$topbeat_config_file"
+		sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$topbeat_config_file"
+
+		systemctl start topbeat
+		systemctl enable topbeat
+	else
+		echo installing topbeat debian
+		topbeat_config_file=/etc/topbeat/topbeat.yml
+		
+		systemctl stop topbeat
+		
+		wget https://download.elastic.co/beats/topbeat/topbeat_1.3.1_amd64.deb -O $monitoringfolder/topbeat_1.3.1_amd64.deb
+		sudo dpkg -i $monitoringfolder/topbeat_1.3.1_amd64.deb
+
+		wget -r $repositoryurl/topbeat.yml.txt -O $topbeat_config_file
+		chmod a+rw $topbeat_config_file
+
+		sed -i -- s#LOGSTASH_SERVER#"$logstashserver"#g "$topbeat_config_file"
+		sed -i -- s#LOGSTASH_PORT#"$logstashserverport"#g "$topbeat_config_file"
+
+		systemctl start topbeat
+		systemctl enable topbeat
+	fi
+
 else
 	echo Skipping topbeat installation.
 fi

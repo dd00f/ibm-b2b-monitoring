@@ -75,5 +75,45 @@ filebeat:
       document_type: linux_audit
       scan_frequency: 5s
       max_bytes: 2000000
+    -
+      paths:
+        - /var/log/auth.log*
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: linux_auth
+      scan_frequency: 5s
+      max_bytes: 2000000
+    -
+      paths:
+        - /var/log/dpkg.log*
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: linux_dpkg
+      scan_frequency: 5s
+      max_bytes: 2000000
+    -
+      paths:
+        - /var/log/kern.log*
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: linux_kernel
+      scan_frequency: 5s
+      max_bytes: 2000000
+    -
+      paths:
+        - /var/log/syslog*
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: linux_syslog
+      scan_frequency: 5s
+      max_bytes: 2000000
+    -
+      paths:
+        - /var/log/vmware-vmsvc.log*
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: vmware_service
+      scan_frequency: 5s
+      max_bytes: 2000000
 
-        
+

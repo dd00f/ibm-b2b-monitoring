@@ -1,7 +1,7 @@
 
 filter {
 
-	# Nov 13 03:42:03 pestvm056a ascp[5693]: LOG Receiver has not received a packet for 2 seconds!
+	# Nov 13 03:42:03 asdfsadf ascp[5693]: LOG Receiver has not received a packet for 2 seconds!
 
 	if [type] == "linux_messages" or [type] == "linux_yum" or [type] == "linux_secure" or [type] == "linux_cron" {
 
@@ -47,7 +47,7 @@ filter {
 	if [type] == "linux_audit" {
 		# type=SYSCALL msg=audit(1485529179.256:66788): arch=c000003e syscall=2 success=no exit=-13 a0=7ffc17c46f60 a1=0 a2=1b6 a3=24 items=0 ppid=15791 pid=15793 auid=4294967295 uid=997 gid=995 euid=997 suid=997 fsuid=997 egid=995 sgid=995 fsgid=995 tty=(none) ses=4294967295 comm="mysql" exe="/usr/bin/mysql" subj=system_u:system_r:zabbix_agent_t:s0 key=(null)
 		grok {
-			match => { "message" => "type=(?<auditType>[a-zA-Z]{1,}) msg=audit\((?<auditEpoch>[0-9]{1,}\.[0-9]{1,}).*" }
+			match => { "message" => "type=(?<auditType>[a-zA-Z]{1,}) msg=audit\((?<auditEpoch>[0-9]{1,}).*" }
 		}
 
 		date {
@@ -59,6 +59,175 @@ filter {
 		mutate {
 			add_field => { "application" => "%{[type]}" }
 		}
+	}
+	
+	if [type] == "linux_auth" {
+		# Feb 16 00:17:01 asdf CRON[17429]: pam_unix(cron:session): session opened for user root by (uid=0)
+		grok {
+			match => { "message" => "(?<dateTime>[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
 	}	
 
+
+	if [type] == "linux_dpkg" {
+		# 2017-02-07 17:09:31 trigproc systemd:amd64 229-4ubuntu10 <none>
+		grok {
+			match => { "message" => "(?<dateTime>[0-9]{1,}-[0-9]{1,}-[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "YYYY-MM-dd HH:mm:ss ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+	}	
+
+	if [type] == "linux_kernel" {
+		# Feb  7 09:18:58 pestvm052c kernel: [13110332.653047] floppy: error -5 while reading block 0
+		grok {
+			match => { "message" => "(?<dateTime>[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+	}
+	
+	if [type] == "linux_syslog" {
+		# Feb 16 10:07:33 asdfr1234 blahblah
+		grok {
+			
+			match => { "message" => "(?<dateTime>[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}) (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+    	
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss ZZZ", "MMM  d HH:mm:ss ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+		
+
+		if [logLevel] == "warning" {
+			mutate
+			{
+				replace => { "logLevel" => "WARN" }
+			}
+		}
+		else {
+			mutate
+			{
+				uppercase => [ "logLevel" ]
+			}
+		}
+		
+	}	
+	
+	if [type] == "linux_syslog_dockerd" {
+		# Feb 16 10:07:33 asdf234 dockerd[5087]: time="2017-02-16T10:07:33.502053236-05:00" level=warning msg="Registering as \"1.1.0.1:2375\" in disco"
+		grok {
+			
+			# GROK pattern to match syslog from Dockerd
+			match => { "message" => "[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,} [^ ]{1,} [^ ]{1,} time=\"(?<dateTime>[^\"]*)\" level=(?<logLevel>[a-zA-Z]{1,})" }
+		}
+
+		date {
+			match => [ "dateTime", "YYYY-MM-dd'T'HH:mm:ss.SSSSSSSSSZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+		
+
+		if [logLevel] == "warning" {
+			mutate
+			{
+				replace => { "logLevel" => "WARN" }
+			}
+		}
+		else {
+			mutate
+			{
+				uppercase => [ "logLevel" ]
+			}
+		}
+		
+	}	
+	
+	if [type] == "vmware_service" {
+		# [Sep 01 00:29:36.497] [ message] [vmtoolsd] Plugin 'guestInfo' initialized.
+		grok {
+			match => { "message" => "\[(?<dateTime>[a-zA-Z]{3} *[0-9]{1,} [0-9]{1,}:[0-9]{1,}:[0-9]{1,}.[0-9]{1,})\] \[ *(?<logLevel>[a-zA-Z]{1,})\] (?<message>(.|\r|\n)*)" }
+			overwrite => [ "message" ]
+		}
+
+		mutate {
+        	update => [ "dateTime", "%{dateTime} %{[@metadata][local_timezone]}" ]
+    	}
+    	
+		date {
+			match => [ "dateTime", "MMM dd HH:mm:ss.SSS ZZZ" ]
+			remove_field => ["dateTime"]
+		}
+		
+		mutate {
+			add_field => { "application" => "%{[type]}" }
+		}
+		
+
+		if [logLevel] == "warning" {
+			mutate
+			{
+				replace => { "logLevel" => "WARN" }
+			}
+		}
+		if [logLevel] == "message" {
+			mutate
+			{
+				replace => { "logLevel" => "INFO" }
+			}
+		}		
+		else {
+			mutate
+			{
+				uppercase => [ "logLevel" ]
+			}
+		}
+		
+	}		
 }
